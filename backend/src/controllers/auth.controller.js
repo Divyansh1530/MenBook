@@ -5,6 +5,7 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import generateSlots from '../utils/generateSlots.js'
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -146,6 +147,84 @@ const logoutUser = asyncHandler(async(req, res) => {
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User logged Out"))
+})
+
+const getAvailableSlots = asyncHandler(async(req,res) => {
+
+    const {mentorId} = req.params
+
+    const {date} = req.query 
+
+    if (!mongoose.Types.ObjectId.isValid(mentorId)) {
+        throw new ApiError(400,"Invalid Mentor Id")
+    }
+
+    if (!date) {
+        throw new ApiError(400,"Date is required")
+    }
+
+    const selectedDate = new Date(date)
+
+    if (isNaN(selectedDate.getTime())) {
+        throw new ApiError(400,"Invalid Date Format")
+    }
+
+    const dayOfWeek = selectedDate.getDay()
+
+    const availability = await Availability.findOne({
+        mentorId,
+        dayOfWeek,
+        isBlocked:false
+    })
+
+    if (!availability) {
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(200,[],"No Availability found for this date")
+        )
+    }
+
+    const generatedSlots = generateSlots({
+        startTime:availability.startTime,
+        endTime:availability.endTime,
+        slotDuration:availability.slotDuration,
+        bufferTime:availability.bufferTime
+    })
+
+    const startOfDay = new Date(selectedDate)
+    startOfDay.setHours(0,0,0,0)
+
+    const endOfDay = new Date(selectedDate)
+    endOfDay.setHours(23,59,59,999)
+
+    const existingBookings = await Booking.find({
+        mentorId,
+        startTime:{
+            $gte:startOfDay,
+            $lte:endOfDay
+        },
+        status:{
+            $ne:"cancelled"
+        }
+    })
+
+    const availableSlots = generatedSlots.filter((slot) => {
+        const slotAlreadyBooked = existingBookings.some((booking) => {
+            const bookingStartMinutes = booking.startTime.getHours()*60 + booking.startTime.getMinutes()
+
+            return bookingStartMinutes === slot.startTime
+        })
+
+        return !slotAlreadyBooked
+    })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,availableSlots,"Available Slots fetched successfully")
+    )
+
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
