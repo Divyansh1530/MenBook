@@ -125,8 +125,50 @@ const getMentorBookings = asyncHandler(async(req,res) => {
 
 })
 
+const cancelBooking = asyncHandler(async(req,res) => {
+
+    const {bookingId} = req.params
+
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+        throw new ApiError(400,"Invalid booking id")
+    }
+
+    const booking = await Booking.findById(bookingId)
+
+    if (!booking) {
+        throw new ApiError(404,"Booking Not Found")
+    }
+
+    const isUserOwner = booking.mentorId.toString() == req.user._id.toString()
+    const isMentorOwner = booking.userId.toString() == req.user._id.toString()
+
+    if (!isUserOwner && !isMentorOwner) {
+        throw new ApiError(403,"You are not allowed to cancel this booking")
+    }
+
+    if (booking.status === "cancelled") {
+        throw new ApiError(400,"Booking is already cancelled")
+    }
+
+    const {cancelReason} = req.body || {}
+
+    if (cancelReason) {
+        booking.cancelReason = cancelReason
+    }
+    booking.status = "cancelled"
+
+    await booking.save()
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,null,"Booking cancelled successfully")
+    )
+})
+
 export {
     createBooking,
     getUserBookings,
-    getMentorBookings
+    getMentorBookings,
+    cancelBooking
 }
