@@ -79,6 +79,54 @@ const createBooking = asyncHandler(async(req,res) => {
 
 })
 
+const getUserBookings = asyncHandler(async(req,res) => {
+
+    const userId = req.user._id
+
+    const bookings = await Booking.find({
+        userId
+    })
+    .populate({
+        path:"mentorId",
+        select:"name email avatar mentorProfile"
+    })
+    .sort({ startTime:1 })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,bookings,"User Bookings fetched successfully")
+    )
+
+})
+
+const getMentorBookings = asyncHandler(async(req,res) => {
+
+    if (req.user.role !== "mentor") {
+        throw new ApiError(403,"Only Mentors can access Mentor Bookings")
+    }
+
+    const mentorId = req.user._id
+
+    const bookings = await Booking.find({
+        mentorId
+    })
+    .populate({
+        path:"userId",
+        select:"name email avatar"
+    })
+    .sort({ startTime:1 })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,bookings,"Mentor Bookings has been fetched successfully")
+    )
+
+})
+
 export {
-    createBooking
+    createBooking,
+    getUserBookings,
+    getMentorBookings
 }

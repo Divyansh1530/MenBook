@@ -5,6 +5,7 @@ import { Availability } from '../models/availability.model.js'
 import mongoose from "mongoose"
 import { User } from "../models/user.model.js";
 import { Booking } from "../models/booking.model.js";
+import generateSlots from "../utils/generateSlots.js";
 
 const createAvailabilty = asyncHandler(async(req,res) => {
     
@@ -261,7 +262,9 @@ const getAvailableSlots = asyncHandler(async(req,res) => {
 
     const availableSlots = generatedSlots.filter((slot) => {
         const slotAlreadyBooked = existingBookings.some((booking) => {
-            const bookingStartMinutes = booking.startTime.getHours()*60 + booking.startTime.getMinutes()
+            const bookingDate = new Date(booking.startTime)
+
+            const bookingStartMinutes = bookingDate.getHours() * 60 + bookingDate.getMinutes()
 
             return bookingStartMinutes === slot.startTime
         })
