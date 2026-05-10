@@ -8,6 +8,8 @@ import Home from './pages/Home'
 import Footer from './components/Footer'
 import Mentor from './pages/Mentor'
 import TopMentors from './components/TopMentors'
+import UserDashboard from './pages/UserDashboard'
+import MentorDashboard from './pages/MentorDashboard'
 
 function App() {
 
@@ -18,6 +20,8 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/mentors/:id" element={<Mentor />} />
       <Route path="/mentors" element={<TopMentors />} />
+      <Route path="/user-dashboard" element={<UserDashboard />} />
+      <Route path="/mentor-dashboard" element={<MentorDashboard />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       {/* <Route path="/home" element={<HeroSection />} /> */}
