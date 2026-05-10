@@ -7,65 +7,136 @@ import { User } from "../models/user.model.js";
 import { Booking } from "../models/booking.model.js";
 import generateSlots from "../utils/generateSlots.js";
 
-const createAvailabilty = asyncHandler(async(req,res) => {
-    
-    const {dayOfWeek , startTime , endTime , slotDuration , bufferTime = 0} = req.body
+const createAvailabilty = asyncHandler(async (req, res) => {
+
+    const {
+        date,
+        startTime,
+        endTime
+    } = req.body
 
     const mentorId = req.user._id
 
+    /*
+        ONLY MENTORS
+    */
+
     if (req.user.role !== "mentor") {
-        throw new ApiError(403, "Only mentors can create availability")
+        throw new ApiError(
+            403,
+            "Only mentors can create availability"
+        )
     }
 
-      if (
-         dayOfWeek === undefined ||
-         startTime === undefined ||
-         endTime === undefined ||
-         slotDuration === undefined
-         ) {
-        throw new ApiError(400,"Required fields are missing")
+    /*
+        VALIDATION
+    */
+
+    if (!date || !startTime || !endTime) {
+        throw new ApiError(
+            400,
+            "All fields are required"
+        )
     }
 
-    if (!mentorId) {
-        throw new ApiError(400,"Mentor ID is required")
+    /*
+        VALIDATE MENTOR ID
+    */
+
+    if (
+        !mongoose.Types.ObjectId.isValid(mentorId)
+    ) {
+        throw new ApiError(
+            400,
+            "Invalid mentor ID"
+        )
     }
 
-    if (!mongoose.Types.ObjectId.isValid(mentorId)) {
-        throw new ApiError(400,"Invalid Mentor ID")
+    /*
+        PARSE DATES
+    */
+
+    const parsedDate = new Date(date)
+
+    const parsedStartTime = new Date(startTime)
+
+    const parsedEndTime = new Date(endTime)
+
+    /*
+        INVALID DATE CHECK
+    */
+
+    if (
+        isNaN(parsedDate.getTime()) ||
+        isNaN(parsedStartTime.getTime()) ||
+        isNaN(parsedEndTime.getTime())
+    ) {
+        throw new ApiError(
+            400,
+            "Invalid date or time format"
+        )
     }
 
-    const parsedStartTime = Number(startTime)
-    const parsedEndTime = Number(endTime)
-    const parsedSlotDuration = Number(slotDuration)
-    const parsedBufferTime = Number(bufferTime)
+    /*
+        START < END
+    */
 
     if (parsedStartTime >= parsedEndTime) {
-        throw new ApiError(400,"Start Time must be less than End Time")
+        throw new ApiError(
+            400,
+            "Start time must be less than end time"
+        )
     }
 
-    if (parsedSlotDuration <= 0) {
-        throw new ApiError(400,"Slot duration cannot be negative")
-    }
+    /*
+        DUPLICATE SLOT CHECK
+    */
 
-    if (parsedBufferTime < 0) {
-        throw new ApiError(400,"Buffer time cannot be negative") 
-    }
-
-    const createdAvailability = await Availability.create({
-        dayOfWeek,
-        startTime:parsedStartTime,
-        endTime:parsedEndTime,
-        slotDuration:parsedSlotDuration,
-        bufferTime:parsedBufferTime,
-        mentorId
+    const existingSlot = await Availability.findOne({
+        mentorId,
+        startTime: parsedStartTime,
+        endTime: parsedEndTime
     })
 
+    if (existingSlot) {
+        throw new ApiError(
+            409,
+            "Slot already exists"
+        )
+    }
+
+    /*
+        CREATE SLOT
+    */
+
+    const availability = await Availability.create({
+
+        mentorId,
+
+        date: parsedDate,
+
+        startTime: parsedStartTime,
+
+        endTime: parsedEndTime,
+
+        isBooked: false
+
+    })
+
+    /*
+        RESPONSE
+    */
+
     return res
-    .status(201)
-    .json(
-        new ApiResponse(201, createdAvailability , "Availability created successfully")
-    )
-    
+        .status(201)
+        .json(
+            new ApiResponse(
+                201,
+                availability,
+                "Availability created successfully"
+            )
+        )
+
 })
 
 const getMentorAvailability = asyncHandler(async(req,res)=> {

@@ -7,11 +7,6 @@ const availabilitySchema = new Schema(
             ref:"User",
             required:true
         },
-        dayOfWeek:{
-            type:Number,
-            min:0,
-            max:6
-        },
         date:{
             type:Date
         },
@@ -20,14 +15,6 @@ const availabilitySchema = new Schema(
             required:true
         },
         endTime:{
-            type:Number,
-            required:true
-        },
-        slotDuration:{
-            type:Number,
-            required:true
-        },
-        bufferTime:{
             type:Number,
             required:true
         },
