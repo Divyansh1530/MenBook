@@ -1,9 +1,11 @@
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
-import { Booking } from "../models/booking.model";
-import razorpay from "../utils/razorpay";
+import { Booking } from "../models/booking.model.js";
+import { Payment } from "../models/payment.model.js";
+import razorpay from "../utils/razorpay.js";
+import crypto from 'crypto'
 
 const createOrder = asyncHandler(async(req,res) => {
 
@@ -55,6 +57,137 @@ const createOrder = asyncHandler(async(req,res) => {
 
 })
 
+const verifyPayment = asyncHandler(async(req,res) => {
+
+    const {razorpay_order_id , razorpay_payment_id , razorpay_signature} = req.body
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        throw new ApiError(400,"All payment fields are required")
+    }
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id
+
+    const expectedSignature = crypto.createHmac(
+        "sha256",process.env.RAZORPAY_KEY_SECRET
+    )
+    .update(body.toString())
+    .digest("hex")
+
+    const isAuthentic = expectedSignature === razorpay_signature
+
+    if (!isAuthentic) {
+        throw new ApiError(400,"Invalid Payment Signature")
+    }
+
+    const payment = await Payment.findOne({
+        orderId:razorpay_order_id
+    })
+
+    if (!payment) {
+        throw new ApiError(404,"Payment record not found")
+    }
+
+    if (payment.status === "paid") {
+        throw new ApiError(400,"Payment already verified")
+    }
+
+    payment.status = "paid"
+    payment.paymentId = razorpay_payment_id
+    payment.signature = razorpay_signature
+
+    await payment.save()
+
+    const booking = await Booking.findById(payment.bookingId)
+
+    if (!booking) {
+        throw new ApiError(404,"Booking not found")
+    }
+
+    booking.status = "confirmed"
+    booking.paymentStatus = "paid"
+
+    await booking.save()
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,{payment,booking},"Payment Verified Successfully")
+    )
+})
+
+const razorpayWebhook = asyncHandler(async(req,res) => {
+
+    const razorpaySignature = req.headers["x-razorpay-signature"]
+
+    if (!razorpaySignature) {
+        throw new ApiError(400,"Webhook signature is missing")
+    }
+
+    const expectedSignature = crypto.createHmac("sha256",process.env.RAZORPAY_WEBHOOK_SECRET)
+    .update(req.body)
+    .digest("hex")
+
+    const isAuthentic = expectedSignature === razorpaySignature
+
+    if (!isAuthentic) {
+        throw new ApiError(400,"Invalid Webhook Signature")
+    }
+
+    const payload = JSON.parse(
+        req.body.toString()
+    )
+
+    if (payload.event === "payment.captured") {
+        
+        const paymentEntity = payload.payload.payment.entity
+        const razorpayOrderId = paymentEntity.order_id
+        const razorpayPaymentId = paymentEntity.id
+        
+        const payment = await Payment.findOne({
+            orderId:razorpayOrderId
+        })
+
+        if (!payment) {
+            return res
+            .status(404)
+            .json({
+                success:false,
+                message:"Payment record not found"
+            })
+        }
+        if (payment.status === "paid") {
+            return res
+            .status(200)
+            .json({
+                success:true,
+                message:"Webhook already processed"
+            })
+        }
+        payment.status = "paid"
+        payment.paymentId = razorpayPaymentId
+
+        await payment.save()
+
+        const booking = await Booking.findById(payment.bookingId)
+
+        if (booking) {
+            booking.status = "confirmed"
+            booking.paymentStatus = "paid"
+            
+            await booking.save()
+        }
+    }
+    return res
+    .status(200)
+    .json({
+        success:true,
+        message:"Webhook received successfully"
+    })
+
+})
+
 export {
-    createOrder
+    createOrder,
+    verifyPayment,
+    razorpayWebhook
 }
