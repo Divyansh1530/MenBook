@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useParams } from 'react-router-dom'
 import { Star } from 'lucide-react'
+import loadRazorpay from '../utils/loadRazorpay'
 
 function Mentor() {
 
@@ -69,41 +70,147 @@ function Mentor() {
     await fetchSlots(date)
   }
 
-  const handleBooking = async () => {
+ const handleBooking = async () => {
 
-    if (!selectedSlot) {
-      return alert('Please select a slot')
-    }
-
-    try {
-
-      const response = await axios.post(
-        'http://localhost:8000/api/v1.1/booking/create',
-        {
-          mentorId: id,
-          startTime: selectedSlot.startTimeISO,
-          endTime: selectedSlot.endTimeISO,
-        //   amount: mentor.mentorProfile?.pricing
-        },
-        {
-          withCredentials: true
-        }
-      )
-
-      console.log(response.data)
-
-      alert('Booking created successfully')
-
-    } catch (error) {
-
-      console.log(error.response.data)
-
-      alert(
-        error.response?.data?.message ||
-        'Booking failed'
-      )
-    }
+  if (!selectedSlot) {
+    return alert('Please select a slot')
   }
+
+  try {
+
+    /*
+      STEP 1
+      CREATE BOOKING
+    */
+
+    const bookingResponse = await axios.post(
+      'http://localhost:8000/api/v1.1/booking/create',
+      {
+        mentorId: id,
+        startTime: selectedSlot.startTimeISO,
+        endTime: selectedSlot.endTimeISO
+      },
+      {
+        withCredentials: true
+      }
+    )
+
+    console.log(bookingResponse.data)
+
+    const booking = bookingResponse.data.data
+
+    /*
+      STEP 2
+      LOAD RAZORPAY SDK
+    */
+
+    const razorpayLoaded = await loadRazorpay()
+
+    if (!razorpayLoaded) {
+      return alert('Razorpay SDK failed to load')
+    }
+
+    /*
+      STEP 3
+      CREATE ORDER
+    */
+
+    const orderResponse = await axios.post(
+      'http://localhost:8000/api/v1.1/payment/create-order',
+      {
+        bookingId: booking._id,
+        amount: booking.amount
+      },
+      {
+        withCredentials: true
+      }
+    )
+
+    console.log(orderResponse.data)
+
+    const order = orderResponse.data.data.order
+
+    /*
+      STEP 4
+      OPEN CHECKOUT
+    */
+
+    const options = {
+
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+
+      amount: order.amount,
+
+      currency: order.currency,
+
+      name: 'MenBook',
+
+      description: 'Mentor Session Booking',
+
+      order_id: order.id,
+
+      handler: async function (response) {
+
+        /*
+          STEP 5
+          VERIFY PAYMENT
+        */
+
+        try {
+
+          const verifyResponse = await axios.post(
+            'http://localhost:8000/api/v1.1/payment/verify-payment',
+            {
+              razorpay_order_id: response.razorpay_order_id,
+
+              razorpay_payment_id: response.razorpay_payment_id,
+
+              razorpay_signature: response.razorpay_signature
+            },
+            {
+              withCredentials: true
+            }
+          )
+
+          console.log(verifyResponse.data)
+
+          alert('Payment Successful')
+
+        } catch (error) {
+
+          console.log(error)
+
+          alert(
+            error.response?.data?.message ||
+            'Payment Verification Failed'
+          )
+        }
+      },
+
+      prefill: {
+        name: mentor.name
+      },
+
+      theme: {
+        color: '#000000'
+      }
+
+    }
+
+    const paymentObject = new window.Razorpay(options)
+
+    paymentObject.open()
+
+  } catch (error) {
+
+    console.log(error)
+
+    alert(
+      error.response?.data?.message ||
+      'Booking Failed'
+    )
+  }
+}
 
   if (loading) {
     return (

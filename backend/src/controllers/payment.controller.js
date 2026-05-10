@@ -12,6 +12,7 @@ const createOrder = asyncHandler(async(req,res) => {
     const {bookingId} = req.body
 
     const userId = req.user._id
+    console.log(req.user)
 
     if (!mongoose.Types.ObjectId.isValid(bookingId)) {
         throw new ApiError(400,"Invalid Booking Id")
@@ -59,60 +60,106 @@ const createOrder = asyncHandler(async(req,res) => {
 
 const verifyPayment = asyncHandler(async(req,res) => {
 
-    const {razorpay_order_id , razorpay_payment_id , razorpay_signature} = req.body
+    const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+    } = req.body
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-        throw new ApiError(400,"All payment fields are required")
+    if (
+        !razorpay_order_id ||
+        !razorpay_payment_id ||
+        !razorpay_signature
+    ) {
+        throw new ApiError(
+            400,
+            "All payment fields are required"
+        )
     }
 
-    const body = razorpay_order_id + "|" + razorpay_payment_id
+    const body =
+        razorpay_order_id + "|" + razorpay_payment_id
 
-    const expectedSignature = crypto.createHmac(
-        "sha256",process.env.RAZORPAY_KEY_SECRET
-    )
-    .update(body.toString())
-    .digest("hex")
+    const expectedSignature = crypto
+        .createHmac(
+            "sha256",
+            process.env.RAZORPAY_KEY_SECRET
+        )
+        .update(body.toString())
+        .digest("hex")
 
-    const isAuthentic = expectedSignature === razorpay_signature
+    const isAuthentic =
+        expectedSignature === razorpay_signature
 
     if (!isAuthentic) {
-        throw new ApiError(400,"Invalid Payment Signature")
+        throw new ApiError(
+            400,
+            "Invalid Payment Signature"
+        )
     }
 
     const payment = await Payment.findOne({
-        orderId:razorpay_order_id
+        orderId: razorpay_order_id
     })
 
     if (!payment) {
-        throw new ApiError(404,"Payment record not found")
+        throw new ApiError(
+            404,
+            "Payment record not found"
+        )
     }
 
     if (payment.status === "paid") {
-        throw new ApiError(400,"Payment already verified")
+        throw new ApiError(
+            400,
+            "Payment already verified"
+        )
     }
 
     payment.status = "paid"
+
     payment.paymentId = razorpay_payment_id
+
     payment.signature = razorpay_signature
 
     await payment.save()
 
-    const booking = await Booking.findById(payment.bookingId)
+    const booking = await Booking.findById(
+        payment.bookingId
+    )
 
     if (!booking) {
-        throw new ApiError(404,"Booking not found")
+        throw new ApiError(
+            404,
+            "Booking not found"
+        )
     }
 
     booking.status = "confirmed"
+
     booking.paymentStatus = "paid"
+
+    booking.razorpayOrderId = razorpay_order_id
+
+    booking.razorpayPaymentId = razorpay_payment_id
+
+    booking.razorpaySignature = razorpay_signature
 
     await booking.save()
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200,{payment,booking},"Payment Verified Successfully")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    payment,
+                    booking
+                },
+                "Payment verified successfully"
+            )
+        )
+
 })
 
 const razorpayWebhook = asyncHandler(async(req,res) => {
