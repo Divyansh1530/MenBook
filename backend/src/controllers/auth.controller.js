@@ -305,6 +305,22 @@ const getSingleMentor = asyncHandler(async(req,res) => {
 
 })
 
+const getAllMentors = asyncHandler(async(req,res) => {
+
+   const mentors = await User.find({
+      role: "mentor"
+   }).select("-password -refreshToken")
+
+   return res.status(200).json(
+      new ApiResponse(
+         200,
+         mentors,
+         "Mentors fetched successfully"
+      )
+   )
+
+})
+
 
 export {
     registerUser,
@@ -315,5 +331,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    getSingleMentor
+    getSingleMentor,
+    getAllMentors
 }

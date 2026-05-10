@@ -7,7 +7,7 @@ import { Booking } from "../models/booking.model.js";
 
 const createBooking = asyncHandler(async(req,res) => {
 
-    const {mentorId , startTime , endTime , amount} = req.body
+    const {mentorId , startTime , endTime } = req.body
 
     const userId = req.user._id
 
@@ -19,11 +19,12 @@ const createBooking = asyncHandler(async(req,res) => {
         throw new ApiError(400,"Invalid Mentor ID")
     }
 
-    if (!mentorId || !startTime || !endTime || !amount) {
+    if (!mentorId || !startTime || !endTime) {
         throw new ApiError(400,"All Fields are required")
     }
 
     const mentor = await User.findById(mentorId)
+    console.log(mentor)
 
     if (!mentor) {
         throw new ApiError(404,"Mentor Not Found")
@@ -59,13 +60,16 @@ const createBooking = asyncHandler(async(req,res) => {
     const expiresAt = new Date(
         Date.now() + 10 * 60 * 1000
     )
+    if (!mentor.mentorProfile?.pricing) {
+    throw new ApiError(400,"Mentor pricing not found")
+    }
 
     const booking = await Booking.create({
         userId,
         mentorId,
         startTime:parsedStartTime,
         endTime:parsedEndTime,
-        amount,
+        amount:mentor.mentorProfile.pricing,
         status:"pending",
         paymentStatus:"pending",
         expiresAt

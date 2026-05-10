@@ -268,14 +268,43 @@ const getAvailableSlots = asyncHandler(async(req,res) => {
 
             return bookingStartMinutes === slot.startTime
         })
-
+        
         return !slotAlreadyBooked
     })
+
+    const formattedSlots = availableSlots.map((slot) => {
+
+   const startHour = Math.floor(slot.startTime / 60)
+   const startMinute = slot.startTime % 60
+
+   const endHour = Math.floor(slot.endTime / 60)
+   const endMinute = slot.endTime % 60
+
+   const startDate = new Date(selectedDate)
+   startDate.setHours(startHour, startMinute, 0, 0)
+
+   const endDate = new Date(selectedDate)
+   endDate.setHours(endHour, endMinute, 0, 0)
+
+   return {
+      formattedStartTime: startDate.toLocaleTimeString([], {
+         hour: '2-digit',
+         minute: '2-digit'
+      }),
+
+      startTimeISO: startDate.toISOString(),
+
+      endTimeISO: endDate.toISOString()
+   }
+   console.log(req.query.date)
+   console.log(selectedDate)
+
+})
 
     return res
     .status(200)
     .json(
-        new ApiResponse(200,availableSlots,"Available Slots fetched successfully")
+        new ApiResponse(200,formattedSlots,"Available Slots fetched successfully")
     )
 
 })

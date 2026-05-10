@@ -7,6 +7,7 @@ import NavBar from './components/Navbar'
 import Home from './pages/Home'
 import Footer from './components/Footer'
 import Mentor from './pages/Mentor'
+import TopMentors from './components/TopMentors'
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/mentors/:id" element={<Mentor />} />
+      <Route path="/mentors" element={<TopMentors />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       {/* <Route path="/home" element={<HeroSection />} /> */}
