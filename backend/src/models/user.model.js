@@ -35,7 +35,7 @@ const userSchema = new Schema({
     },
     mentorProfile:{
         bio:{
-            type:String
+            type:String,
         },
         expertise:[
             {
@@ -43,7 +43,7 @@ const userSchema = new Schema({
         }
         ],
         pricing:{
-            type:Number
+            type:Number,
         },
         avgRating:{
             type:Number,

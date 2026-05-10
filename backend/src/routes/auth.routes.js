@@ -7,7 +7,8 @@ import {
     changeCurrentPassword, 
     getCurrentUser, 
     updateUserAvatar, 
-    updateAccountDetails
+    updateAccountDetails,
+    getSingleMentor
 } from '../controllers/auth.controller.js'
 import {upload} from '../middlewares/multer.middleware.js'
 import { verifyJWT } from '../middlewares/auth.middleware.js'
@@ -26,5 +27,5 @@ router.route("/register").post(
 router.route("/login").post(loginUser)
 
 router.route("/logout").post(verifyJWT,  logoutUser)
-
+router.route("/mentors/:id").get(getSingleMentor)
 export default router

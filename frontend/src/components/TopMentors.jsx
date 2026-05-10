@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Star, ArrowRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 function TopMentors() {
 
   const [mentors, setMentors] = useState([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
 
@@ -97,17 +99,17 @@ function TopMentors() {
 
                     <div className='flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold'>
                       <Star size={16} fill='currentColor' />
-                      {mentor.rating || 5}
+                      {mentor.mentorProfile?.avgRating || 5}
                     </div>
 
                   </div>
 
                   <p className='text-gray-500 font-medium mb-3'>
-                    {mentor.expertise || 'Mentor'}
+                    {mentor.mentorProfile?.expertise || 'Mentor'}
                   </p>
 
                   <p className='text-gray-600 leading-relaxed mb-6'>
-                    {mentor.bio || 'Experienced mentor helping students and professionals grow faster.'}
+                    {mentor.mentorProfile?.bio || 'Experienced mentor helping students and professionals grow faster.'}
                   </p>
 
                   <div className='flex items-center justify-between'>
@@ -116,12 +118,15 @@ function TopMentors() {
                       <p className='text-gray-400 text-sm'>Starting From</p>
 
                       <h4 className='text-2xl font-black text-gray-900'>
-                        ₹{mentor.pricing || 499}
+                        ₹{mentor.mentorProfile?.pricing || 499}
                       </h4>
                     </div>
 
-                    <button className='bg-black text-white px-5 py-3 rounded-2xl font-semibold hover:scale-105 transition'>
-                      Book Now
+                    <button
+                    onClick={() => navigate(`/mentors/${mentor._id}`)}
+                    className='bg-black text-white px-5 py-3 rounded-2xl font-semibold hover:scale-105 transition'
+                    >
+                    Book Now
                     </button>
 
                   </div>

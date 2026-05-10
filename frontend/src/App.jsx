@@ -6,6 +6,7 @@ import HeroSection from './components/Hero'
 import NavBar from './components/Navbar'
 import Home from './pages/Home'
 import Footer from './components/Footer'
+import Mentor from './pages/Mentor'
 
 function App() {
 
@@ -14,6 +15,7 @@ function App() {
     <NavBar />
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/mentors/:id" element={<Mentor />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       {/* <Route path="/home" element={<HeroSection />} /> */}

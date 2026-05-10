@@ -29,7 +29,7 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 
 const registerUser = asyncHandler( async (req, res) => {
 
-    const { name, email, password, role } = req.body
+    const { name , email , password , role , bio , expertise , pricing } = req.body
 
     if (
         [email, name, password].some((field) => field?.trim() === "")
@@ -61,7 +61,13 @@ const registerUser = asyncHandler( async (req, res) => {
         avatar: avatar?.url || "",
         email:email.toLowerCase(),
         password,
-        role:role || "user"
+        role:role || "user",
+
+        mentorProfile:{
+            bio,
+            expertise:[expertise],
+            pricing
+        }
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -281,6 +287,23 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
         new ApiResponse(200, user, "Avatar image updated successfully")
     )
 })
+const getSingleMentor = asyncHandler(async(req,res) => {
+
+   const mentor = await User.findById(req.params.id)
+
+   if (!mentor) {
+      throw new ApiError(404,"Mentor not found")
+   }
+
+   return res.status(200).json(
+      new ApiResponse(
+         200,
+         mentor,
+         "Mentor fetched successfully"
+      )
+   )
+
+})
 
 
 export {
@@ -292,4 +315,5 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
+    getSingleMentor
 }
