@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Star, ArrowRight } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function TopMentors() {
 
   const [mentors, setMentors] = useState([])
   const [loading, setLoading] = useState(true)
+
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -26,6 +27,7 @@ function TopMentors() {
         console.log(error)
 
       } finally {
+
         setLoading(false)
       }
     }
@@ -35,109 +37,168 @@ function TopMentors() {
   }, [])
 
   if (loading) {
+
     return (
-      <div className='py-24 text-center text-2xl font-bold'>
+
+      <div className='py-24 text-center text-2xl font-bold text-slate-900'>
+
         Loading mentors...
+
       </div>
     )
   }
 
   return (
-    <section className='bg-gray-100 py-24 px-6'>
 
-      <div className='max-w-7xl mx-auto'>
+    <section className='py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto'>
 
-        {/* HEADING */}
-        <div className='flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-16'>
+      {/* HEADING */}
+      <div className='mb-12 text-center'>
 
-          <div>
-            <h2 className='text-4xl md:text-5xl font-black text-gray-900'>
-              Top Mentors
-            </h2>
+        <h2 className='text-4xl font-black text-slate-900 mb-4'>
 
-            <p className='text-gray-500 mt-4 text-lg max-w-2xl'>
-              Learn directly from experienced mentors across software,
-              business, design, content creation and more.
-            </p>
-          </div>
+          Top Rated Mentors
 
-          <button className='flex items-center gap-2 bg-black text-white px-6 py-3 rounded-2xl font-semibold hover:scale-105 transition'>
-            View All
-            <ArrowRight size={20} />
-          </button>
+        </h2>
 
-        </div>
+        <p className='text-slate-600 max-w-2xl mx-auto text-lg'>
 
-        {/* MENTORS GRID */}
-        <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-8'>
+          Learn from experienced professionals across
+          software engineering, design, business,
+          content creation and career growth.
 
-          {
-            mentors.map((mentor) => (
+        </p>
 
-              <div
-                key={mentor._id}
-                className='bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2'
-              >
+      </div>
 
-                {/* IMAGE */}
-                <div className='h-72 overflow-hidden'>
-                  <img
-                    src={mentor.avatar || 'https://via.placeholder.com/400'}
-                    alt={mentor.name}
-                    className='w-full h-full object-cover hover:scale-110 transition duration-500'
-                  />
-                </div>
+      {/* GRID */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8'>
 
-                {/* CONTENT */}
-                <div className='p-6'>
+        {
+          mentors.map((mentor) => (
 
-                  <div className='flex items-center justify-between mb-3'>
+            <div
+              key={mentor._id}
+              className='bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl transition-all duration-300 flex flex-col group hover:-translate-y-2'
+            >
 
-                    <h3 className='text-2xl font-bold text-gray-900'>
-                      {mentor.name}
-                    </h3>
+              {/* IMAGE */}
+              <div className='relative h-56 overflow-hidden'>
 
-                    <div className='flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold'>
-                      <Star size={16} fill='currentColor' />
-                      {mentor.mentorProfile?.avgRating || 5}
-                    </div>
+                <img
+                  src={
+                    mentor.avatar ||
+                    'https://via.placeholder.com/400'
+                  }
+                  alt={mentor.name}
+                  className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-500'
+                />
 
-                  </div>
+                {/* RATING */}
+                <div className='absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl flex items-center gap-1 text-sm font-bold text-slate-900 shadow-sm'>
 
-                  <p className='text-gray-500 font-medium mb-3'>
-                    {mentor.mentorProfile?.expertise || 'Mentor'}
-                  </p>
+                  <Star className='w-4 h-4 fill-amber-400 text-amber-400' />
 
-                  <p className='text-gray-600 leading-relaxed mb-6'>
-                    {mentor.mentorProfile?.bio || 'Experienced mentor helping students and professionals grow faster.'}
-                  </p>
-
-                  <div className='flex items-center justify-between'>
-
-                    <div>
-                      <p className='text-gray-400 text-sm'>Starting From</p>
-
-                      <h4 className='text-2xl font-black text-gray-900'>
-                        ₹{mentor.mentorProfile?.pricing || 499}
-                      </h4>
-                    </div>
-
-                    <button
-                    onClick={() => navigate(`/mentors/${mentor._id}`)}
-                    className='bg-black text-white px-5 py-3 rounded-2xl font-semibold hover:scale-105 transition'
-                    >
-                    Book Now
-                    </button>
-
-                  </div>
+                  {
+                    mentor.mentorProfile?.avgRating || 5
+                  }
 
                 </div>
 
               </div>
-            ))
-          }
 
-        </div>
+              {/* CONTENT */}
+              <div className='p-6 flex-1 flex flex-col'>
+
+                {/* NAME */}
+                <h3 className='text-xl font-black text-slate-900 mb-1'>
+
+                  {mentor.name}
+
+                </h3>
+
+                {/* EXPERTISE */}
+                <p className='text-sm text-slate-500 mb-4 line-clamp-1'>
+
+                  {
+                    mentor.mentorProfile?.expertise?.join(', ') ||
+                    'Professional Mentor'
+                  }
+
+                </p>
+
+                {/* TAGS */}
+                <div className='flex flex-wrap gap-2 mb-5'>
+
+                  {
+                    mentor.mentorProfile?.expertise
+                      ?.slice(0, 2)
+                      ?.map((tag, index) => (
+
+                        <span
+                          key={index}
+                          className='text-xs font-medium px-3 py-1 bg-slate-100 text-slate-600 rounded-lg'
+                        >
+
+                          {tag}
+
+                        </span>
+
+                      ))
+                  }
+
+                </div>
+
+                {/* BIO */}
+                <p className='text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3'>
+
+                  {
+                    mentor.mentorProfile?.bio ||
+                    'Experienced mentor helping students and professionals grow faster.'
+                  }
+
+                </p>
+
+                {/* FOOTER */}
+                <div className='mt-auto pt-5 border-t border-slate-100 flex items-center justify-between'>
+
+                  {/* PRICE */}
+                  <div>
+
+                    <div className='text-xs text-slate-500 mb-1'>
+
+                      Starting from
+
+                    </div>
+
+                    <div className='font-black text-slate-900 text-xl'>
+
+                      ₹{
+                        mentor.mentorProfile?.pricing || 499
+                      }
+
+                    </div>
+
+                  </div>
+
+                  {/* BUTTON */}
+                  <button
+                    onClick={() => navigate(`/mentors/${mentor._id}`)}
+                    className='px-5 py-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl font-semibold text-sm transition-all'
+                  >
+
+                    View Profile
+
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          ))
+        }
 
       </div>
 

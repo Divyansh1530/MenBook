@@ -7,10 +7,13 @@ function Signup() {
     const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "user"
+      name: "",
+      email: "",
+      password: "",
+      role: "user",
+      bio: "",
+      expertise: "",
+      pricing: ""
   })
 
   const [avatar, setAvatar] = useState(null)
@@ -39,6 +42,25 @@ function Signup() {
       data.append("password", formData.password)
       data.append("role", formData.role)
 
+      if (formData.role === "mentor") {
+
+  data.append("bio", formData.bio)
+
+  data.append(
+    "expertise",
+    JSON.stringify(
+      formData.expertise
+        .split(",")
+        .map((item) => item.trim())
+    )
+  )
+
+  data.append(
+    "pricing",
+    Number(formData.pricing)
+  )
+}
+
       if (avatar) {
         data.append("avatar", avatar)
       }
@@ -62,7 +84,7 @@ function Signup() {
 
     } catch (error) {
 
-      console.log(error)
+      console.log(error.response.data)
 
       alert(
         error.response?.data?.message ||
@@ -142,11 +164,62 @@ function Signup() {
             <select 
              name="role"
              value={formData.role}
-  o          onChange={handleChange}
+             onChange={handleChange}
              className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black">
              <option value="user">User</option>
              <option value="mentor">Mentor</option>
             </select>
+            {
+  formData.role === "mentor" && (
+    <>
+
+      <div>
+        <label className="block mb-2 font-medium">
+          Bio
+        </label>
+
+        <textarea
+          name="bio"
+          value={formData.bio}
+          onChange={handleChange}
+          placeholder="Tell users about yourself"
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+        />
+      </div>
+
+      <div>
+        <label className="block mb-2 font-medium">
+          Expertise
+        </label>
+
+        <input
+          type="text"
+          name="expertise"
+          value={formData.expertise}
+          onChange={handleChange}
+          placeholder="React, Node.js, System Design"
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+        />
+      </div>
+
+      <div>
+        <label className="block mb-2 font-medium">
+          Session Price
+        </label>
+
+        <input
+          type="number"
+          name="pricing"
+          value={formData.pricing}
+          onChange={handleChange}
+          placeholder="499"
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+        />
+      </div>
+
+    </>
+  )
+}
           </div>
 
           <div>

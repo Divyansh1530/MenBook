@@ -16,6 +16,7 @@ function App() {
 
   return (
     <BrowserRouter>
+    <div className='bg-gray-100'>
     <NavBar />
     <Routes>
       <Route path="/" element={<Home />} />
@@ -28,7 +29,9 @@ function App() {
       <Route path="/login" element={<Login />} />
       {/* <Route path="/home" element={<HeroSection />} /> */}
      </Routes>
+     
      <Footer />
+     </div>
     </BrowserRouter>
   )
 }

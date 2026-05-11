@@ -1,115 +1,206 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+
 import {
-  Brain,
-  Code2,
+  HeartPulse,
+  PenTool,
+  Server,
+  Megaphone,
   Briefcase,
-  Palette,
-  LineChart,
-  HeartHandshake,
+  Brain,
   Camera,
-  Mic
+  Mic,
+  ArrowRight
 } from 'lucide-react'
 
 function Specialization() {
 
-  const specializations = [
-    {
-      title: 'Therapist',
-      icon: Brain,
-      description: 'Mental health guidance and personal growth sessions.'
-    },
-    {
-      title: 'Software Engineer',
-      icon: Code2,
-      description: 'Coding interviews, MERN stack, DSA and backend systems.'
-    },
-    {
-      title: 'Career Coach',
-      icon: Briefcase,
-      description: 'Career planning, resume reviews and interview preparation.'
-    },
-    {
-      title: 'UI/UX Designer',
-      icon: Palette,
-      description: 'Design systems, Figma mentorship and product design.'
-    },
-    {
-      title: 'Business Mentor',
-      icon: LineChart,
-      description: 'Startup strategy, scaling and business consulting.'
-    },
-    {
-      title: 'Relationship Coach',
-      icon: HeartHandshake,
-      description: 'Communication, confidence and relationship advice.'
-    },
-    {
-      title: 'Content Creator',
-      icon: Camera,
-      description: 'YouTube growth, branding and content strategy.'
-    },
-    {
-      title: 'Public Speaker',
-      icon: Mic,
-      description: 'Speaking confidence, communication and stage presence.'
+  const navigate = useNavigate()
+
+  const [mentorCount, setMentorCount] = useState(0)
+
+  useEffect(() => {
+
+    const fetchMentors = async () => {
+
+      try {
+
+        const response = await axios.get(
+          'http://localhost:8000/api/v1.1/users/mentors'
+        )
+
+        setMentorCount(response.data.data.length)
+
+      } catch (error) {
+
+        console.log(error)
+      }
     }
+
+    fetchMentors()
+
+  }, [])
+
+  /*
+    SPECIALIZATIONS
+  */
+
+  const categories = [
+
+    {
+      id: 1,
+      name: 'Therapists',
+      icon: HeartPulse,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-rose-100 text-rose-600'
+    },
+
+    {
+      id: 2,
+      name: 'UI/UX Designers',
+      icon: PenTool,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-indigo-100 text-indigo-600'
+    },
+
+    {
+      id: 3,
+      name: 'Backend Developers',
+      icon: Server,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-emerald-100 text-emerald-600'
+    },
+
+    {
+      id: 4,
+      name: 'Marketing Experts',
+      icon: Megaphone,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-amber-100 text-amber-600'
+    },
+
+    {
+      id: 5,
+      name: 'Career Coaches',
+      icon: Briefcase,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-blue-100 text-blue-600'
+    },
+
+    {
+      id: 6,
+      name: 'Psychologists',
+      icon: Brain,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-purple-100 text-purple-600'
+    },
+
+    {
+      id: 7,
+      name: 'Content Creators',
+      icon: Camera,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-pink-100 text-pink-600'
+    },
+
+    {
+      id: 8,
+      name: 'Public Speakers',
+      icon: Mic,
+      count: `${mentorCount}+ Mentors`,
+      color: 'bg-cyan-100 text-cyan-600'
+    }
+
   ]
 
   return (
-    <section className='bg-white py-24 px-6'>
 
-      <div className='max-w-7xl mx-auto'>
+    <section className='py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-slate-50 rounded-[40px]'>
 
-        {/* HEADING */}
-        <div className='text-center mb-16'>
+      {/* HEADER */}
+      <div className='flex flex-col md:flex-row justify-between items-end mb-12 gap-4'>
 
-          <h2 className='text-4xl md:text-5xl font-black text-gray-900'>
-            Find By Specialization
+        <div>
+
+          <h2 className='text-4xl font-black text-slate-900 mb-3'>
+
+            Find your expert
+
           </h2>
 
-          <p className='text-gray-500 mt-5 max-w-2xl mx-auto text-lg'>
-            Explore expert mentors across multiple domains and book
-            personalized 1-on-1 sessions based on your goals.
+          <p className='text-slate-600 max-w-2xl text-lg'>
+
+            Connect with professionals across various industries
+            who are ready to help you navigate your career,
+            business, creativity and personal growth journey.
+
           </p>
 
         </div>
 
-        {/* SPECIALIZATION GRID */}
-        <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-8'>
+        {/* VIEW ALL */}
+        <button
+          onClick={() => navigate('/mentors')}
+          className='text-indigo-600 font-semibold hover:text-indigo-700 flex items-center gap-2 group'
+        >
 
-          {
-            specializations.map((item, index) => {
+          View all mentors
 
-              const Icon = item.icon
+          <ArrowRight className='w-5 h-5 group-hover:translate-x-1 transition-transform' />
 
-              return (
-                <div
-                  key={index}
-                  className='group bg-gray-50 hover:bg-black rounded-3xl p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-gray-100'
-                >
+        </button>
 
-                  <div className='w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center mb-6 group-hover:bg-white group-hover:text-black transition'>
-                    <Icon size={30} />
-                  </div>
+      </div>
 
-                  <h3 className='text-2xl font-bold text-gray-900 group-hover:text-white transition'>
-                    {item.title}
-                  </h3>
+      {/* GRID */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
 
-                  <p className='text-gray-500 group-hover:text-gray-300 mt-4 leading-relaxed transition'>
-                    {item.description}
-                  </p>
+        {
+          categories.map((cat) => (
 
-                  <button className='mt-6 text-sm font-semibold text-black group-hover:text-white transition'>
-                    Explore Mentors →
-                  </button>
+            <div
+              key={cat.id}
+              onClick={() => navigate('/mentors')}
+              className='bg-white rounded-3xl p-7 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group'
+            >
 
-                </div>
-              )
-            })
-          }
+              {/* ICON */}
+              <div
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${cat.color} group-hover:scale-110 transition-transform`}
+              >
 
-        </div>
+                <cat.icon className='w-7 h-7' />
+
+              </div>
+
+              {/* TITLE */}
+              <h3 className='font-black text-xl text-slate-900 mb-2'>
+
+                {cat.name}
+
+              </h3>
+
+              {/* COUNT */}
+              <p className='text-slate-500 mb-5'>
+
+                {cat.count}
+
+              </p>
+
+              {/* BUTTON */}
+              <button className='text-indigo-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all'>
+
+                Explore
+
+                <ArrowRight className='w-4 h-4' />
+
+              </button>
+
+            </div>
+
+          ))
+        }
 
       </div>
 
