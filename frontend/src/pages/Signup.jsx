@@ -1,6 +1,6 @@
 import React,{useState} from 'react'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import {Link, useNavigate } from 'react-router-dom'
 
 function Signup() {
 
@@ -98,13 +98,13 @@ function Signup() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-5">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-22">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         <h1 className="text-3xl font-bold text-center mb-2">
           Create Account
         </h1>
 
-        <p className="text-gray-500 text-center mb-8">
+        <p className="text-gray-500 text-center mb-5">
           Sign up to book mentors
         </p>
 
@@ -112,7 +112,7 @@ function Signup() {
         onSubmit={handleSubmit}
         className="space-y-5">
           <div>
-            <label className="block mb-2 font-medium">
+            <label className="block mb-1 font-normal">
               Full Name
             </label>
 
@@ -122,12 +122,12 @@ function Signup() {
              value={formData.name}
              onChange={handleChange}
              placeholder="Enter your name"
-             className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+             className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black"
                 />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">
+            <label className="block mb-1 font-normal">
               Email
             </label>
 
@@ -137,12 +137,12 @@ function Signup() {
              value={formData.email}
              onChange={handleChange}
              placeholder="Enter your email"
-             className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+             className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black"
              />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">
+            <label className="block mb-1 font-normal">
               Password
             </label>
 
@@ -152,12 +152,12 @@ function Signup() {
              value={formData.password}
              onChange={handleChange}
              placeholder="Enter your password"
-             className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+             className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black"
              />
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">
+            <label className="block mb-1 font-normal">
               Role
             </label>
 
@@ -165,7 +165,7 @@ function Signup() {
              name="role"
              value={formData.role}
              onChange={handleChange}
-             className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black">
+             className="w-full border border-gray-300 rounded-lg px-4 py-1 outline-none focus:ring-2 focus:ring-black">
              <option value="user">User</option>
              <option value="mentor">Mentor</option>
             </select>
@@ -174,7 +174,7 @@ function Signup() {
     <>
 
       <div>
-        <label className="block mb-2 font-medium">
+        <label className="block mb-2 font-normal">
           Bio
         </label>
 
@@ -183,12 +183,12 @@ function Signup() {
           value={formData.bio}
           onChange={handleChange}
           placeholder="Tell users about yourself"
-          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black"
         />
       </div>
 
       <div>
-        <label className="block mb-2 font-medium">
+        <label className="block mb-2 font-normal">
           Expertise
         </label>
 
@@ -198,12 +198,12 @@ function Signup() {
           value={formData.expertise}
           onChange={handleChange}
           placeholder="React, Node.js, System Design"
-          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black"
         />
       </div>
 
       <div>
-        <label className="block mb-2 font-medium">
+        <label className="block mb-2 font-normal">
           Session Price
         </label>
 
@@ -213,7 +213,7 @@ function Signup() {
           value={formData.pricing}
           onChange={handleChange}
           placeholder="499"
-          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black"
         />
       </div>
 
@@ -223,14 +223,14 @@ function Signup() {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">
+            <label className="block mb-1 font-normal">
               Avatar
             </label>
 
             <input
              type="file"
              onChange={(e) => setAvatar(e.target.files[0])}
-             className="w-full border border-gray-300 rounded-xl px-4 py-3"
+             className="w-full border border-gray-300 rounded-lg px-4 py-1"
              />
           </div>
 
@@ -242,8 +242,8 @@ function Signup() {
           </button>
         </form>
 
-        <p className="text-center text-gray-500 mt-6">
-          Already have an account? Login
+        <p className="text-center text-gray-500 mt-4">
+          Already have an account? <Link to="/login" className="text-blue-500">Login</Link>
         </p>
       </div>
     </div>

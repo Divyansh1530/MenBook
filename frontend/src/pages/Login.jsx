@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import {Link, useNavigate } from 'react-router-dom'
+
 
 function Login() {
 
@@ -43,10 +44,10 @@ function Login() {
         'user',
         JSON.stringify(response.data.data.user)
       )
+      window.location.href = "/"
 
       alert('Login successful')
 
-      navigate('/')
 
     } catch (error) {
 
@@ -125,7 +126,7 @@ function Login() {
         </form>
 
         <p className='text-center text-gray-500 mt-6'>
-          Don&apos;t have an account? Signup
+          Don&apos;t have an account?<Link to="/signup" className='text-blue-500'> Signup</Link>
         </p>
 
       </div>
