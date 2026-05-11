@@ -1,92 +1,99 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import {
-  CalendarDays,
-  Clock3,
-  Trash2,
-  Plus
-} from 'lucide-react'
 
 function MentorAvailability() {
 
-  const [date, setDate] = useState('')
-  const [startTime, setStartTime] = useState('')
-  const [endTime, setEndTime] = useState('')
-//   const [mentorId, setMentorId] = useState('')
-  const mentorId = "69fcac06a1706fc5dc977e05"
-  const [slots, setSlots] = useState([])
+  const [availability, setAvailability] = useState([])
 
-  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    dayOfWeek: 0,
+    startTime: '',
+    endTime: '',
+    slotDuration: 30,
+    bufferTime: 0
+  })
+
+  const days = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+  ]
 
   /*
-    FETCH AVAILABLE SLOTS
+      FETCH AVAILABILITY
   */
 
-  const fetchSlots = async (selectedDate) => {
-
-    if (!selectedDate) return
+  const fetchAvailability = async () => {
 
     try {
 
       const response = await axios.get(
-        `http://localhost:8000/api/v1.1/availability/slots/${mentorId}?date=${selectedDate}`,
+        'http://localhost:8000/api/v1.1/availability/mentor',
         {
           withCredentials: true
         }
       )
 
-      console.log(response.data)
-
-      setSlots(response.data.data)
+      setAvailability(response.data.data)
 
     } catch (error) {
 
       console.log(error)
-
-      setSlots([])
     }
   }
 
+  useEffect(() => {
+
+    fetchAvailability()
+
+  }, [])
+
   /*
-    HANDLE DATE CHANGE
+      HANDLE INPUT
   */
 
-  const handleDateChange = async (e) => {
+  const handleChange = (e) => {
 
-    const selectedDate = e.target.value
-
-    setDate(selectedDate)
-
-    await fetchSlots(selectedDate)
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
   }
 
   /*
-    ADD SLOT
+      TIME TO MINUTES
   */
 
-  const handleAddSlot = async () => {
+  const convertTimeToMinutes = (time) => {
 
-    if (!date || !startTime || !endTime) {
-      return alert('All fields are required')
-    }
+    const [hours, minutes] = time.split(':')
+
+    return Number(hours) * 60 + Number(minutes)
+  }
+
+  /*
+      CREATE AVAILABILITY
+  */
+
+  const handleCreateAvailability = async () => {
 
     try {
 
-      setLoading(true)
-
-      const formattedStartTime =
-        new Date(`${date}T${startTime}`)
-
-      const formattedEndTime =
-        new Date(`${date}T${endTime}`)
+      const payload = {
+        dayOfWeek: Number(formData.dayOfWeek),
+        startTime: convertTimeToMinutes(formData.startTime),
+        endTime: convertTimeToMinutes(formData.endTime),
+        slotDuration: Number(formData.slotDuration),
+        bufferTime: Number(formData.bufferTime)
+      }
 
       const response = await axios.post(
         'http://localhost:8000/api/v1.1/availability/create',
-        {
-          startTime: formattedStartTime,
-          endTime: formattedEndTime,
-          date
-        },
+        payload,
         {
           withCredentials: true
         }
@@ -94,49 +101,9 @@ function MentorAvailability() {
 
       console.log(response.data)
 
-      alert('Slot created successfully')
+      alert('Availability created successfully')
 
-      setStartTime('')
-      setEndTime('')
-
-      fetchSlots(date)
-
-    } catch (error) {
-
-      console.log(error.response.data)
-
-      alert(
-        error.response?.data?.message ||
-        'Failed to create slot'
-      )
-
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  /*
-    DELETE SLOT
-  */
-
-  const handleDeleteSlot = async (slotId) => {
-
-    try {
-
-      const response = await axios.delete(
-        `http://localhost:8000/api/v1.1/availability/${slotId}`,
-        {
-          withCredentials: true
-        }
-      )
-
-      console.log(response.data)
-
-      alert('Slot deleted successfully')
-
-      setSlots((prev) =>
-        prev.filter((slot) => slot._id !== slotId)
-      )
+      fetchAvailability()
 
     } catch (error) {
 
@@ -144,46 +111,109 @@ function MentorAvailability() {
 
       alert(
         error.response?.data?.message ||
-        'Failed to delete slot'
+        'Failed to create availability'
       )
     }
   }
 
+  /*
+      FORMAT TIME
+  */
+
+  const formatMinutes = (minutes) => {
+
+    const hours = Math.floor(minutes / 60)
+
+    const mins = minutes % 60
+
+    const period = hours >= 12 ? 'PM' : 'AM'
+
+    const formattedHours =
+      hours % 12 || 12
+
+    return `${formattedHours}:${mins
+      .toString()
+      .padStart(2, '0')} ${period}`
+  }
+
   return (
-    <section className='min-h-screen bg-gray-100 py-20 px-6'>
 
-      <div className='max-w-6xl mx-auto'>
+    <section className='min-h-screen bg-slate-50 py-24 px-6'>
 
-        {/* HEADER */}
-        <div className='mb-14'>
+      <div className='max-w-5xl mx-auto'>
 
-          <h1 className='text-5xl font-black text-gray-900'>
+        {/* HEADING */}
+        <div className='mb-12'>
+
+          <h1 className='text-5xl font-black text-slate-900 mb-4'>
+
             Mentor Availability
+
           </h1>
 
-          <p className='text-gray-500 mt-4 text-lg'>
-            Create and manage your available session slots
+          <p className='text-slate-600 text-lg'>
+
+            Create your recurring weekly schedule.
+
           </p>
 
         </div>
 
-        {/* CREATE SLOT */}
-        <div className='bg-white rounded-3xl shadow-xl p-8 mb-12'>
+        {/* FORM */}
+        <div className='bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-12'>
 
-          <div className='grid md:grid-cols-4 gap-5'>
+          <div className='grid md:grid-cols-2 gap-6'>
 
-            {/* DATE */}
+            {/* DAY */}
             <div>
 
-              <label className='block font-semibold mb-3'>
-                Select Date
+              <label className='block mb-2 font-semibold'>
+
+                Day
+
+              </label>
+
+              <select
+                name='dayOfWeek'
+                value={formData.dayOfWeek}
+                onChange={handleChange}
+                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
+              >
+
+                {
+                  days.map((day, index) => (
+
+                    <option
+                      key={index}
+                      value={index}
+                    >
+
+                      {day}
+
+                    </option>
+
+                  ))
+                }
+
+              </select>
+
+            </div>
+
+            {/* SLOT DURATION */}
+            <div>
+
+              <label className='block mb-2 font-semibold'>
+
+                Slot Duration (minutes)
+
               </label>
 
               <input
-                type='date'
-                value={date}
-                onChange={handleDateChange}
-                className='w-full border border-gray-300 rounded-2xl px-5 py-4 outline-none'
+                type='number'
+                name='slotDuration'
+                value={formData.slotDuration}
+                onChange={handleChange}
+                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
               />
 
             </div>
@@ -191,17 +221,18 @@ function MentorAvailability() {
             {/* START TIME */}
             <div>
 
-              <label className='block font-semibold mb-3'>
+              <label className='block mb-2 font-semibold'>
+
                 Start Time
+
               </label>
 
               <input
                 type='time'
-                value={startTime}
-                onChange={(e) =>
-                  setStartTime(e.target.value)
-                }
-                className='w-full border border-gray-300 rounded-2xl px-5 py-4 outline-none'
+                name='startTime'
+                value={formData.startTime}
+                onChange={handleChange}
+                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
               />
 
             </div>
@@ -209,123 +240,107 @@ function MentorAvailability() {
             {/* END TIME */}
             <div>
 
-              <label className='block font-semibold mb-3'>
+              <label className='block mb-2 font-semibold'>
+
                 End Time
+
               </label>
 
               <input
                 type='time'
-                value={endTime}
-                onChange={(e) =>
-                  setEndTime(e.target.value)
-                }
-                className='w-full border border-gray-300 rounded-2xl px-5 py-4 outline-none'
+                name='endTime'
+                value={formData.endTime}
+                onChange={handleChange}
+                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
               />
 
             </div>
 
-            {/* BUTTON */}
-            <div className='flex items-end'>
+            {/* BUFFER */}
+            <div>
 
-              <button
-                onClick={handleAddSlot}
-                disabled={loading}
-                className='w-full bg-black text-white py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:scale-[1.02] transition'
-              >
-                <Plus size={20} />
-                {
-                  loading
-                    ? 'Creating...'
-                    : 'Add Slot'
-                }
-              </button>
+              <label className='block mb-2 font-semibold'>
+
+                Buffer Time (minutes)
+
+              </label>
+
+              <input
+                type='number'
+                name='bufferTime'
+                value={formData.bufferTime}
+                onChange={handleChange}
+                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
+              />
 
             </div>
 
           </div>
 
+          {/* BUTTON */}
+          <button
+            onClick={handleCreateAvailability}
+            className='mt-8 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-semibold transition'
+          >
+
+            Create Availability
+
+          </button>
+
         </div>
 
-        {/* SLOT LIST */}
-        <div className='bg-white rounded-3xl shadow-xl p-8'>
-
-          <div className='flex items-center gap-3 mb-8'>
-
-            <CalendarDays size={28} />
-
-            <h2 className='text-3xl font-black'>
-              Available Slots
-            </h2>
-
-          </div>
+        {/* AVAILABILITY LIST */}
+        <div className='space-y-5'>
 
           {
-            slots.length === 0 ? (
+            availability.map((item) => (
 
-              <div className='text-center py-16'>
+              <div
+                key={item._id}
+                className='bg-white border border-slate-200 rounded-2xl p-6 shadow-sm'
+              >
 
-                <h3 className='text-2xl font-bold text-gray-700'>
-                  No slots found
-                </h3>
+                <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 
-                <p className='text-gray-500 mt-3'>
-                  Add your first availability slot
-                </p>
+                  <div>
 
-              </div>
+                    <h2 className='text-2xl font-bold text-slate-900'>
 
-            ) : (
+                      {days[item.dayOfWeek]}
 
-              <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-5'>
+                    </h2>
 
-                {
-                  slots.map((slot) => (
+                    <p className='text-slate-600 mt-2'>
 
-                    <div
-                      key={slot._id}
-                      className='bg-gray-100 rounded-2xl p-6 flex flex-col justify-between'
-                    >
+                      {formatMinutes(item.startTime)}
+                      {' - '}
+                      {formatMinutes(item.endTime)}
 
-                      <div>
+                    </p>
 
-                        <div className='flex items-center gap-2 text-gray-500 mb-4'>
-                          <Clock3 size={18} />
-                          Session Time
-                        </div>
+                  </div>
 
-                        <h3 className='text-2xl font-black text-gray-900'>
-                          {slot.formattedStartTime}
-                        </h3>
+                  <div className='flex flex-wrap gap-3'>
 
-                        <p className='text-gray-500 mt-2'>
-                          to {
-                            new Date(slot.endTimeISO)
-                            .toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          }
-                        </p>
+                    <div className='bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-semibold'>
 
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          handleDeleteSlot(slot._id)
-                        }
-                        className='mt-8 bg-red-500 text-white py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition'
-                      >
-                        <Trash2 size={18} />
-                        Delete Slot
-                      </button>
+                      {item.slotDuration} mins/session
 
                     </div>
-                  ))
-                }
+
+                    <div className='bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold'>
+
+                      {item.bufferTime} mins buffer
+
+                    </div>
+
+                  </div>
+
+                </div>
 
               </div>
 
-            )
+            ))
           }
 
         </div>

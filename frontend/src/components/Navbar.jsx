@@ -119,7 +119,7 @@ function NavBar() {
               user?.role === 'user' && (
 
                 <Link
-                  to='/dashboard'
+                  to='/user-dashboard'
                   className='text-slate-600 hover:text-indigo-600 font-medium transition-colors'
                 >
                   My Bookings
@@ -260,7 +260,7 @@ function NavBar() {
               user?.role === 'user' && (
 
                 <Link
-                  to='/dashboard'
+                  to='/user-dashboard'
                   className='block text-slate-700 hover:text-indigo-600 font-medium'
                 >
                   My Bookings

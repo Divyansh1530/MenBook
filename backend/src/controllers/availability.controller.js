@@ -10,9 +10,11 @@ import generateSlots from "../utils/generateSlots.js";
 const createAvailabilty = asyncHandler(async (req, res) => {
 
     const {
-        date,
+        dayOfWeek,
         startTime,
-        endTime
+        endTime,
+        slotDuration,
+        bufferTime = 0
     } = req.body
 
     const mentorId = req.user._id
@@ -29,13 +31,18 @@ const createAvailabilty = asyncHandler(async (req, res) => {
     }
 
     /*
-        VALIDATION
+        REQUIRED FIELDS
     */
 
-    if (!date || !startTime || !endTime) {
+    if (
+        dayOfWeek === undefined ||
+        startTime === undefined ||
+        endTime === undefined ||
+        slotDuration === undefined
+    ) {
         throw new ApiError(
             400,
-            "All fields are required"
+            "Required fields are missing"
         )
     }
 
@@ -53,32 +60,19 @@ const createAvailabilty = asyncHandler(async (req, res) => {
     }
 
     /*
-        PARSE DATES
+        PARSE NUMBERS
     */
 
-    const parsedDate = new Date(date)
+    const parsedStartTime = Number(startTime)
 
-    const parsedStartTime = new Date(startTime)
+    const parsedEndTime = Number(endTime)
 
-    const parsedEndTime = new Date(endTime)
+    const parsedSlotDuration = Number(slotDuration)
 
-    /*
-        INVALID DATE CHECK
-    */
-
-    if (
-        isNaN(parsedDate.getTime()) ||
-        isNaN(parsedStartTime.getTime()) ||
-        isNaN(parsedEndTime.getTime())
-    ) {
-        throw new ApiError(
-            400,
-            "Invalid date or time format"
-        )
-    }
+    const parsedBufferTime = Number(bufferTime)
 
     /*
-        START < END
+        VALIDATION
     */
 
     if (parsedStartTime >= parsedEndTime) {
@@ -88,44 +82,60 @@ const createAvailabilty = asyncHandler(async (req, res) => {
         )
     }
 
-    /*
-        DUPLICATE SLOT CHECK
-    */
-
-    const existingSlot = await Availability.findOne({
-        mentorId,
-        startTime: parsedStartTime,
-        endTime: parsedEndTime
-    })
-
-    if (existingSlot) {
+    if (parsedSlotDuration <= 0) {
         throw new ApiError(
-            409,
-            "Slot already exists"
+            400,
+            "Slot duration must be greater than 0"
+        )
+    }
+
+    if (parsedBufferTime < 0) {
+        throw new ApiError(
+            400,
+            "Buffer time cannot be negative"
         )
     }
 
     /*
-        CREATE SLOT
+        DUPLICATE CHECK
     */
 
-    const availability = await Availability.create({
+    const existingAvailability =
+        await Availability.findOne({
+            mentorId,
+            dayOfWeek,
+            startTime: parsedStartTime,
+            endTime: parsedEndTime
+        })
 
-        mentorId,
-
-        date: parsedDate,
-
-        startTime: parsedStartTime,
-
-        endTime: parsedEndTime,
-
-        isBooked: false
-
-    })
+    if (existingAvailability) {
+        throw new ApiError(
+            409,
+            "Availability already exists"
+        )
+    }
 
     /*
-        RESPONSE
+        CREATE
     */
+
+    const availability =
+        await Availability.create({
+
+            mentorId,
+
+            dayOfWeek,
+
+            startTime: parsedStartTime,
+
+            endTime: parsedEndTime,
+
+            slotDuration: parsedSlotDuration,
+
+            bufferTime: parsedBufferTime,
+
+            isBlocked: false
+        })
 
     return res
         .status(201)
@@ -136,7 +146,6 @@ const createAvailabilty = asyncHandler(async (req, res) => {
                 "Availability created successfully"
             )
         )
-
 })
 
 const getMentorAvailability = asyncHandler(async(req,res)=> {
@@ -367,8 +376,6 @@ const getAvailableSlots = asyncHandler(async(req,res) => {
 
       endTimeISO: endDate.toISOString()
    }
-   console.log(req.query.date)
-   console.log(selectedDate)
 
 })
 

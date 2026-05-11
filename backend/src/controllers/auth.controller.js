@@ -52,24 +52,40 @@ const registerUser = asyncHandler( async (req, res) => {
     }
     
 
-    const avatarLocalPath = req.file?.avatar[0]?.path;
+    const avatarLocalPath = req.file?.path;
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
    
-    const user = await User.create({
+    let parsedExpertise = []
+
+    if (expertise) {
+    parsedExpertise = JSON.parse(expertise)
+    }
+    const userData = {
         name,
         avatar: avatar?.url || "",
-        email:email.toLowerCase(),
+        email: email.toLowerCase(),
         password,
-        role:role || "user",
+        role: role || "user"
+    }
 
-        mentorProfile:{
+        if (role === "mentor") {
+
+        let parsedExpertise = []
+
+        if (expertise) {
+            parsedExpertise = JSON.parse(expertise)
+        }
+
+        userData.mentorProfile = {
             bio,
-            expertise:[expertise],
+            expertise: parsedExpertise,
             pricing
         }
-    })
+    }
 
+    const user = await User.create(userData)
+    
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
