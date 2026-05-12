@@ -21,6 +21,7 @@ import authRouter from './routes/auth.routes.js'
 import availabilityRouter from './routes/availability.routes.js'
 import bookingRouter from './routes/booking.routes.js'
 import paymentRouter from './routes/payment.routes.js'
+import reviewRouter from './routes/review.routes.js'
 
 //routes declaration
 
@@ -28,6 +29,7 @@ app.use("/api/v1.1/users",authRouter)
 app.use("/api/v1.1/availability",availabilityRouter)
 app.use("/api/v1.1/booking",bookingRouter)
 app.use("/api/v1.1/payment",paymentRouter)
+app.use("/api/v1.1/review",reviewRouter)
 
 
 export {app}
