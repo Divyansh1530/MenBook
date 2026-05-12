@@ -40,12 +40,12 @@ function Hero() {
 
   return (
 
-    <section className='pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden'>
+    <section className='pt-42 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden'>
 
       <div className='flex flex-col lg:flex-row items-center gap-12 lg:gap-8'>
 
         {/* LEFT SIDE */}
-        <div className='flex-1 text-center lg:text-left'>
+        <div className='flex-1 text-center'>
 
           {/* TOP BADGE */}
           <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-medium text-sm mb-6 shadow-sm'>
@@ -59,35 +59,33 @@ function Hero() {
           </div>
 
           {/* HEADING */}
-          <h1 className='text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6 tracking-tight'>
+          <h1 className='hero-heading text-5xl lg:text-6xl font-semibold text-slate-900  mb-6 tracking-normal '>
 
-            Unlock Your Potential with{' '}
+            Book Mentors{' '}
 
-            <span className='text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-indigo-400'>
+            <span className='block text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-indigo-400'>
 
-              1-on-1 Mentorship
+              Grow Faster
 
             </span>
 
           </h1>
 
           {/* DESCRIPTION */}
-          <p className='text-lg text-slate-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed'>
+          <p className='text-lg text-slate-600 mb-8 max-w-2xl mx-auto px-18 md:px-0 leading-relaxed'>
 
-            Accelerate your career growth by connecting
-            with industry experts. Get personalized
-            guidance, interview preparation, coding help,
-            portfolio reviews, and actionable advice to
-            reach your goals faster.
+            Connect with experienced mentors for coding,
+            careers, design, business and personal growth.
+            Book 1-on-1 sessions instantly.
 
           </p>
 
           {/* BUTTONS */}
-          <div className='flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start'>
+          <div className='flex flex-col sm:flex-row items-center gap-4 justify-center'>
 
             <button
               onClick={() => navigate('/mentors')}
-              className='w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-lg transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 hover:-translate-y-0.5'
+              className='w-50 sm:w-auto px-3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-lg transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2'
             >
 
               Explore Mentors
@@ -98,7 +96,7 @@ function Hero() {
 
             <button
               onClick={() => navigate('/signup')}
-              className='w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-semibold text-lg transition-all shadow-sm'
+              className='w-50 sm:w-auto px-3 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-semibold text-lg transition-all shadow-sm'
             >
 
               Become a Mentor
@@ -108,7 +106,7 @@ function Hero() {
           </div>
 
           {/* SOCIAL PROOF */}
-          <div className='mt-10 flex items-center gap-4 justify-center lg:justify-start'>
+          <div className='mt-10 flex items-center gap-4 justify-center'>
 
             <div className='flex -space-x-3'>
 
@@ -151,203 +149,46 @@ function Hero() {
           </div>
 
           {/* STATS */}
-          <div className='grid grid-cols-3 gap-6 mt-14'>
-
-            <div>
-
-              <h2 className='text-3xl font-black text-slate-900'>
-                {mentorCount}+
-              </h2>
-
-              <p className='text-slate-500 mt-1'>
-                Mentors
-              </p>
-
-            </div>
-
-            <div>
-
-              <h2 className='text-3xl font-black text-slate-900'>
-                10k+
-              </h2>
-
-              <p className='text-slate-500 mt-1'>
-                Sessions
-              </p>
-
-            </div>
-
-            <div>
-
-              <h2 className='text-3xl font-black text-slate-900'>
-                4.9★
-              </h2>
-
-              <p className='text-slate-500 mt-1'>
-                Ratings
-              </p>
-
-            </div>
-
-          </div>
-
+          <div className='flex items-center justify-center gap-x-24 mt-14 text-center'>
+          {/* Stat 1 */}
+          <div className="flex flex-col">
+          <h2 className='text-3xl font-black text-slate-900 tracking-tight leading-none'>
+              {mentorCount}+
+          </h2>
+          <p className='text-slate-500 mt-2 text-sm font-medium'>
+            Mentors
+          </p>
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className='flex-1 w-full relative'>
+  {/* Visual Divider (Optional but adds a human touch) */}
+  <div className="h-8 w-px bg-slate-200 mx-2" />
 
-          {/* BACKGROUND */}
-          <div className='absolute inset-0 bg-linear-to-tr from-indigo-100 to-white rounded-3xl transform rotate-3 scale-105 -z-10'></div>
+  {/* Stat 2 */}
+  <div className="flex flex-col">
+    <h2 className='text-3xl font-black text-slate-900 tracking-tight leading-none'>
+      10k+
+    </h2>
+    <p className='text-slate-500 mt-2 text-sm font-medium'>
+      Sessions
+    </p>
+  </div>
 
-          {/* MAIN IMAGE */}
-          <img
-            src='https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80'
-            alt='workspace'
-            className='w-full h-auto rounded-3xl shadow-xl border border-slate-100 object-cover aspect-4/3'
-          />
+  {/* Visual Divider */}
+  <div className="h-8 w-px bg-slate-200 mx-2" />
 
-          {/* FLOATING CARD */}
-          <div
-            className='absolute -bottom-6 -left-6 bg-white p-5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce'
-            style={{
-              animationDuration: '3s'
-            }}
-          >
-
-            <div className='w-14 h-14 bg-green-100 rounded-full flex items-center justify-center'>
-
-              <div className='w-4 h-4 bg-green-500 rounded-full'></div>
-
-            </div>
-
-            <div>
-
-              <div className='text-sm font-bold text-slate-900'>
-                {mentorCount}+ Mentors
-              </div>
-
-              <div className='text-xs text-slate-500'>
-                Available online now
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* SESSION PREVIEW */}
-          <div className='absolute top-6 right-6 bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-5 w-72 border border-slate-100 hidden md:block'>
-
-            <div className='flex items-center justify-between mb-5'>
-
-              <div>
-
-                <h3 className='text-lg font-bold text-slate-900'>
-                  Upcoming Session
-                </h3>
-
-                <p className='text-slate-500 text-sm'>
-                  Mentorship Preview
-                </p>
-
-              </div>
-
-              <div className='bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-semibold'>
-
-                Live
-
-              </div>
-
-            </div>
-
-            <div className='space-y-4'>
-
-              <div className='flex items-center gap-4 bg-slate-100 rounded-xl p-4'>
-
-                <div className='w-12 h-12 rounded-full bg-linear-to-br from-indigo-500 to-purple-500'></div>
-
-                <div>
-
-                  <h4 className='font-semibold text-slate-900'>
-                    Aman Sharma
-                  </h4>
-
-                  <p className='text-sm text-slate-500'>
-                    Frontend Engineer
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className='grid grid-cols-2 gap-3'>
-
-                <div className='bg-slate-100 rounded-xl p-4'>
-
-                  <Calendar
-                    className='mb-2 text-indigo-600'
-                    size={20}
-                  />
-
-                  <p className='text-xs text-slate-500'>
-                    Session Date
-                  </p>
-
-                  <h4 className='font-semibold text-slate-900 mt-1'>
-                    15 May
-                  </h4>
-
-                </div>
-
-                <div className='bg-slate-100 rounded-xl p-4'>
-
-                  <Video
-                    className='mb-2 text-indigo-600'
-                    size={20}
-                  />
-
-                  <p className='text-xs text-slate-500'>
-                    Mode
-                  </p>
-
-                  <h4 className='font-semibold text-slate-900 mt-1'>
-                    Video Call
-                  </h4>
-
-                </div>
-
-              </div>
-
-              <div className='bg-slate-100 rounded-xl p-4 flex items-center justify-between'>
-
-                <div className='flex items-center gap-3'>
-
-                  <ShieldCheck
-                    className='text-green-500'
-                    size={22}
-                  />
-
-                  <div>
-
-                    <h4 className='font-semibold text-slate-900'>
-                      Secure Payment
-                    </h4>
-
-                    <p className='text-xs text-slate-500'>
-                      Protected by Razorpay
-                    </p>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
+  {/* Stat 3 */}
+  <div className="flex flex-col">
+    <h2 className='text-3xl font-black text-slate-900 tracking-tight leading-none'>
+      4.9★
+    </h2>
+    <p className='text-slate-500 mt-2 text-sm font-medium'>
+      Ratings
+    </p>
+  </div>
+</div>
 
         </div>
-
+       
       </div>
 
     </section>

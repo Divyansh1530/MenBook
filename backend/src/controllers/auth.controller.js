@@ -252,7 +252,7 @@ const getCurrentUser = asyncHandler(async(req, res) => {
 const updateAccountDetails = asyncHandler(async(req, res) => {
     const {name, email} = req.body
 
-    if (!name || !email) {
+    if (!name) {
         throw new ApiError(400, "All fields are required")
     }
 
@@ -284,7 +284,6 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 
     if (!avatar.url) {
         throw new ApiError(400, "Error while uploading on avatar")
-        
     }
 
     const user = await User.findByIdAndUpdate(

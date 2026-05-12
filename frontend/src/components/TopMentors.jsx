@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Star } from 'lucide-react'
+import { Star,ArrowUpRight,ShieldCheck,ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 function TopMentors() {
@@ -72,136 +72,70 @@ function TopMentors() {
       </div>
 
       {/* GRID */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8'>
-
-        {
-          mentors.map((mentor) => (
-
-            <div
-              key={mentor._id}
-              className='bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl transition-all duration-300 flex flex-col group hover:-translate-y-2'
-            >
-
-              {/* IMAGE */}
-              <div className='relative h-56 overflow-hidden'>
-
-                <img
-                  src={
-                    mentor.avatar ||
-                    'https://via.placeholder.com/400'
-                  }
-                  alt={mentor.name}
-                  className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-500'
-                />
-
-                {/* RATING */}
-                <div className='absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl flex items-center gap-1 text-sm font-bold text-slate-900 shadow-sm'>
-
-                  <Star className='w-4 h-4 fill-amber-400 text-amber-400' />
-
-                  {
-                    mentor.mentorProfile?.avgRating || 5
-                  }
-
-                </div>
-
+      <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
+        {mentors.map((mentor) => (
+          <div
+            key={mentor._id}
+            onClick={() => navigate(`/mentors/${mentor._id}`)}
+            className='group bg-white rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col sm:flex-row'
+          >
+            {/* LEFT: IMAGE (Rectangle Aspect) */}
+            <div className='relative w-full sm:w-48 lg:w-56 h-64 sm:h-auto overflow-hidden'>
+              <img
+                src={mentor.avatar || 'https://via.placeholder.com/400'}
+                alt={mentor.name}
+                className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110'
+              />
+              <div className='absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 text-[11px] font-bold text-slate-900'>
+                <Star className='w-3 h-3 fill-amber-400 text-amber-400' />
+                {mentor.mentorProfile?.avgRating || 5.0}
               </div>
-
-              {/* CONTENT */}
-              <div className='p-6 flex-1 flex flex-col'>
-
-                {/* NAME */}
-                <h3 className='text-xl font-black text-slate-900 mb-1'>
-
-                  {mentor.name}
-
-                </h3>
-
-                {/* EXPERTISE */}
-                <p className='text-sm text-slate-500 mb-4 line-clamp-1'>
-
-                  {
-                    mentor.mentorProfile?.expertise?.join(', ') ||
-                    'Professional Mentor'
-                  }
-
-                </p>
-
-                {/* TAGS */}
-                <div className='flex flex-wrap gap-2 mb-5'>
-
-                  {
-                    mentor.mentorProfile?.expertise
-                      ?.slice(0, 2)
-                      ?.map((tag, index) => (
-
-                        <span
-                          key={index}
-                          className='text-xs font-medium px-3 py-1 bg-slate-100 text-slate-600 rounded-lg'
-                        >
-
-                          {tag}
-
-                        </span>
-
-                      ))
-                  }
-
-                </div>
-
-                {/* BIO */}
-                <p className='text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3'>
-
-                  {
-                    mentor.mentorProfile?.bio ||
-                    'Experienced mentor helping students and professionals grow faster.'
-                  }
-
-                </p>
-
-                {/* FOOTER */}
-                <div className='mt-auto pt-5 border-t border-slate-100 flex items-center justify-between'>
-
-                  {/* PRICE */}
-                  <div>
-
-                    <div className='text-xs text-slate-500 mb-1'>
-
-                      Starting from
-
-                    </div>
-
-                    <div className='font-black text-slate-900 text-xl'>
-
-                      ₹{
-                        mentor.mentorProfile?.pricing || 499
-                      }
-
-                    </div>
-
-                  </div>
-
-                  {/* BUTTON */}
-                  <button
-                    onClick={() => navigate(`/mentors/${mentor._id}`)}
-                    className='px-5 py-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl font-semibold text-sm transition-all'
-                  >
-
-                    View Profile
-
-                  </button>
-
-                </div>
-
-              </div>
-
             </div>
 
-          ))
-        }
+            {/* RIGHT: CONTENT (Structured Typography) */}
+            <div className='flex-1 p-6 flex flex-col justify-between'>
+              <div>
+                <div className='flex items-start justify-between mb-1'>
+                  <h3 className='text-xl font-bold text-slate-900 flex items-center gap-2'>
+                    {mentor.name}
+                    <ShieldCheck className='w-4 h-4 text-indigo-500' />
+                  </h3>
+                  <div className='text-right'>
+                    <span className='block text-[10px] uppercase font-bold text-slate-400 tracking-widest'>Hourly Rate</span>
+                    <span className='text-lg font-black text-indigo-600'>
+                      ₹{mentor.mentorProfile?.pricing || 499}
+                    </span>
+                  </div>
+                </div>
 
+                {/* Expertise Badges */}
+                <div className='flex flex-wrap gap-2 mb-4'>
+                  {mentor.mentorProfile?.expertise?.slice(0, 3).map((exp, i) => (
+                    <span key={i} className='text-[10px] font-bold px-2 py-1 bg-slate-50 text-slate-500 rounded-md border border-slate-100 uppercase tracking-tighter'>
+                      {exp}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Bio - Controlled line clamp for clean UI */}
+                <p className='text-slate-500 text-sm leading-relaxed line-clamp-3 mb-6'>
+                  {mentor.mentorProfile?.bio || 'An industry veteran dedicated to helping mentees bridge the gap between education and high-level professional execution.'}
+                </p>
+              </div>
+
+              {/* Action Area */}
+              <div className='flex items-center justify-between pt-4 border-t border-slate-50'>
+                <span className='text-xs font-semibold text-slate-400'>
+                  Available this week
+                </span>
+                <div className='flex items-center gap-2 text-sm font-bold text-indigo-600 group-hover:translate-x-1 transition-transform'>
+                  View Profile <ArrowRight className='w-4 h-4' />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-
     </section>
   )
 }

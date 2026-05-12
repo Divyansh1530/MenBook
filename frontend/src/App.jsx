@@ -11,6 +11,7 @@ import TopMentors from './components/TopMentors'
 import UserDashboard from './pages/UserDashboard'
 import MentorDashboard from './pages/MentorDashboard'
 import MentorAvailability from './pages/MentorAvailability'
+import Profile from './pages/Profile'
 
 function App() {
 
@@ -24,6 +25,7 @@ function App() {
       <Route path="/mentors" element={<TopMentors />} />
       <Route path="/user-dashboard" element={<UserDashboard />} />
       <Route path="/mentor-dashboard" element={<MentorDashboard />} />
+      <Route path="/profile" element={<Profile />} />
       <Route path="/mentor-availability" element={<MentorAvailability />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
