@@ -2,13 +2,33 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Star,ArrowUpRight,ShieldCheck,ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 function TopMentors() {
 
   const [mentors, setMentors] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchParams] = useSearchParams()
+  const [search, setSearch] = useState(
+   searchParams.get('search') || ''
+)
+  
+    const [minPrice, setMinPrice] = useState('')
+  
+    const [maxPrice, setMaxPrice] = useState('')
+  
+    const [minRating, setMinRating] = useState('')
+    
 
   const navigate = useNavigate()
+
+  useEffect(() => {
+
+   setSearch(
+      searchParams.get('search') || ''
+   )
+
+}, [searchParams])
 
   useEffect(() => {
 
@@ -17,7 +37,15 @@ function TopMentors() {
       try {
 
         const response = await axios.get(
-          'http://localhost:8000/api/v1.1/users/mentors'
+          'http://localhost:8000/api/v1.1/users/mentors',
+          {
+          params:{
+            search,
+            minPrice,
+            maxPrice,
+            minRating
+          }
+        }
         )
 
         setMentors(response.data.data)
@@ -34,7 +62,7 @@ function TopMentors() {
 
     fetchMentors()
 
-  }, [])
+  }, [search,minPrice,maxPrice,minRating])
 
   if (loading) {
 
@@ -72,6 +100,34 @@ function TopMentors() {
       </div>
 
       {/* GRID */}
+      <div>
+         <input
+          type="text"
+          placeholder="Search expertise..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Min Price"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Max Price"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+        />
+        <select
+          value={minRating}
+          onChange={(e) => setMinRating(e.target.value)}
+        >
+          <option value="">All Ratings</option>
+          <option value="4">4★ & above</option>
+          <option value="4.5">4.5★ & above</option>
+        </select>
+      </div>
       <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
         {mentors.map((mentor) => (
           <div

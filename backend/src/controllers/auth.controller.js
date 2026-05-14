@@ -320,20 +320,61 @@ const getSingleMentor = asyncHandler(async(req,res) => {
 
 })
 
-const getAllMentors = asyncHandler(async(req,res) => {
+const getAllMentors = asyncHandler(async (req, res) => {
 
-   const mentors = await User.find({
-      role: "mentor"
-   }).select("-password -refreshToken")
+    const {
+        search,
+        minPrice,
+        maxPrice,
+        minRating
+    } = req.query
 
-   return res.status(200).json(
-      new ApiResponse(
-         200,
-         mentors,
-         "Mentors fetched successfully"
-      )
-   )
+    let query = {
+        role: "mentor"
+    }
 
+    if (search) {
+
+        query["mentorProfile.expertise"] = {
+            $regex: search,
+            $options: "i"
+        }
+    }
+
+    if (minPrice || maxPrice) {
+
+        query["mentorProfile.pricing"] = {}
+
+        if (minPrice) {
+            query["mentorProfile.pricing"].$gte =
+                Number(minPrice)
+        }
+
+        if (maxPrice) {
+            query["mentorProfile.pricing"].$lte =
+                Number(maxPrice)
+        }
+    }
+
+    if (minRating) {
+
+        query["mentorProfile.avgRating"] = {
+            $gte: Number(minRating)
+        }
+    }
+
+    const mentors = await User.find(query)
+    .select("-password -refreshToken")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            mentors,
+            "Mentors fetched successfully"
+        )
+    )
 })
 
 

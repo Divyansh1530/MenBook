@@ -1,44 +1,67 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useParams } from 'react-router-dom'
-import { Star } from 'lucide-react'
-import loadRazorpay from '../utils/loadRazorpay'
+import { Star, CalendarDays } from 'lucide-react'
 
 function Mentor() {
 
   const { id } = useParams()
 
   const [mentor, setMentor] = useState(null)
-  const [loading, setLoading] = useState(true)
+
+  const [reviews, setReviews] = useState([])
 
   const [selectedDate, setSelectedDate] = useState('')
+
   const [slots, setSlots] = useState([])
-  const [selectedSlot, setSelectedSlot] = useState(null)
 
-  useEffect(() => {
+  const [loading, setLoading] = useState(true)
 
-    const fetchMentor = async () => {
+  
+  /*
+      FETCH MENTOR
+  */
 
-      try {
+  const fetchMentor = async () => {
 
-        const response = await axios.get(
-          `http://localhost:8000/api/v1.1/users/mentors/${id}`
-        )
+    try {
 
-        setMentor(response.data.data)
+      const response = await axios.get(
+        `http://localhost:8000/api/v1.1/users/mentors/${id}`
+        
+      )
 
-      } catch (error) {
+      setMentor(response.data.data)
 
-        console.log(error)
+    } catch (error) {
 
-      } finally {
-        setLoading(false)
-      }
+      console.log(error)
     }
+  }
 
-    fetchMentor()
+  /*
+      FETCH REVIEWS
+  */
 
-  }, [id])
+  const fetchReviews = async () => {
+
+    try {
+
+      const response = await axios.get(
+        `http://localhost:8000/api/v1.1/review/mentors/${id}`
+      )
+
+      setReviews(response.data.data)
+
+    } catch (error) {
+
+      console.log(error)
+    }
+  }
+
+  /*
+      FETCH AVAILABLE SLOTS
+  */
 
   const fetchSlots = async (date) => {
 
@@ -46,20 +69,42 @@ function Mentor() {
 
       const response = await axios.get(
         `http://localhost:8000/api/v1.1/availability/slots/${id}?date=${date}`,
-        {
-            withCredentials:true
-        }
-      )
 
+      {
+            withCredentials:true
+      }
+
+      ) 
+      
       setSlots(response.data.data)
 
     } catch (error) {
 
       console.log(error)
-
-      setSlots([])
     }
   }
+
+  useEffect(() => {
+
+    const loadData = async () => {
+
+      setLoading(true)
+
+      await Promise.all([
+        fetchMentor(),
+        fetchReviews()
+      ])
+
+      setLoading(false)
+    }
+
+    loadData()
+
+  }, [id])
+
+  /*
+      HANDLE DATE CHANGE
+  */
 
   const handleDateChange = async (e) => {
 
@@ -70,149 +115,131 @@ function Mentor() {
     await fetchSlots(date)
   }
 
- const handleBooking = async () => {
+  /*
+      BOOK SESSION
+  */
 
-  if (!selectedSlot) {
-    return alert('Please select a slot')
-  }
+  const handleBookSession = async (slot) => {
 
-  try {
+    try {
 
-    /*
-      STEP 1
-      CREATE BOOKING
-    */
+      /*
+          CREATE BOOKING
+      */
 
-    const bookingResponse = await axios.post(
-      'http://localhost:8000/api/v1.1/booking/create',
-      {
-        mentorId: id,
-        startTime: selectedSlot.startTimeISO,
-        endTime: selectedSlot.endTimeISO
-      },
-      {
-        withCredentials: true
-      }
-    )
-
-    console.log(bookingResponse.data)
-
-    const booking = bookingResponse.data.data
-
-    /*
-      STEP 2
-      LOAD RAZORPAY SDK
-    */
-
-    const razorpayLoaded = await loadRazorpay()
-
-    if (!razorpayLoaded) {
-      return alert('Razorpay SDK failed to load')
-    }
-
-    /*
-      STEP 3
-      CREATE ORDER
-    */
-
-    const orderResponse = await axios.post(
-      'http://localhost:8000/api/v1.1/payment/create-order',
-      {
-        bookingId: booking._id,
-        amount: booking.amount
-      },
-      {
-        withCredentials: true
-      }
-    )
-
-    console.log(orderResponse.data)
-
-    const order = orderResponse.data.data.order
-
-    /*
-      STEP 4
-      OPEN CHECKOUT
-    */
-
-    const options = {
-
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-
-      amount: order.amount,
-
-      currency: order.currency,
-
-      name: 'MenBook',
-
-      description: 'Mentor Session Booking',
-
-      order_id: order.id,
-
-      handler: async function (response) {
-
-        /*
-          STEP 5
-          VERIFY PAYMENT
-        */
-
-        try {
-
-          const verifyResponse = await axios.post(
-            'http://localhost:8000/api/v1.1/payment/verify-payment',
-            {
-              razorpay_order_id: response.razorpay_order_id,
-
-              razorpay_payment_id: response.razorpay_payment_id,
-
-              razorpay_signature: response.razorpay_signature
-            },
-            {
-              withCredentials: true
-            }
-          )
-
-          console.log(verifyResponse.data)
-
-          alert('Payment Successful')
-
-        } catch (error) {
-
-          console.log(error)
-
-          alert(
-            error.response?.data?.message ||
-            'Payment Verification Failed'
-          )
+      const bookingResponse = await axios.post(
+        'http://localhost:8000/api/v1.1/booking/create',
+        {
+          mentorId:id,
+          startTime: slot.startTimeISO,
+          endTime: slot.endTimeISO
+        },
+        {
+          withCredentials: true
         }
-      },
+      )
+      
 
-      prefill: {
-        name: mentor.name
-      },
+      const booking =
+        bookingResponse.data.data
 
-      theme: {
-        color: '#000000'
+      /*
+          CREATE ORDER
+      */
+
+      const paymentResponse =
+        await axios.post(
+          'http://localhost:8000/api/v1.1/payment/create-order',
+          {
+            bookingId: booking._id
+          },
+          {
+            withCredentials: true
+          }
+        )
+
+      const {
+        order
+      } = paymentResponse.data.data
+
+      /*
+          OPEN RAZORPAY
+      */
+
+      const options = {
+
+        key:
+          import.meta.env.VITE_RAZORPAY_KEY_ID,
+
+        amount: order.amount,
+
+        currency: order.currency,
+
+        name: 'MenBook',
+
+        description: 'Mentorship Session',
+
+        order_id: order.id,
+
+        handler: async function (response) {
+
+          try {
+
+            await axios.post(
+              'http://localhost:8000/api/v1.1/payment/verify-payment',
+              {
+                razorpay_order_id:
+                  response.razorpay_order_id,
+
+                razorpay_payment_id:
+                  response.razorpay_payment_id,
+
+                razorpay_signature:
+                  response.razorpay_signature
+              },
+              {
+                withCredentials: true
+              }
+            )
+
+            alert(
+              'Payment successful'
+            )
+            await fetchSlots(selectedDate)
+
+          } catch (error) {
+
+            console.log(error)
+
+            alert(
+              'Payment verification failed'
+            )
+          }
+        },
+
+        theme: {
+          color: '#4f46e5'
+        }
       }
 
+      const razor =
+        new window.Razorpay(options)
+
+      razor.open()
+
+    } catch (error) {
+
+      console.log(error)
+
+      alert(
+        error.response?.data?.message ||
+        'Booking failed'
+      )
     }
-
-    const paymentObject = new window.Razorpay(options)
-
-    paymentObject.open()
-
-  } catch (error) {
-
-    console.log(error)
-
-    alert(
-      error.response?.data?.message ||
-      'Booking Failed'
-    )
   }
-}
 
   if (loading) {
+
     return (
       <div className='min-h-screen flex items-center justify-center text-3xl font-bold'>
         Loading Mentor...
@@ -221,146 +248,293 @@ function Mentor() {
   }
 
   if (!mentor) {
+
     return (
       <div className='min-h-screen flex items-center justify-center text-3xl font-bold'>
-        Mentor Not Found
+        Mentor not found
       </div>
     )
   }
 
   return (
-    <section className='min-h-screen bg-gray-100 py-24 px-6'>
 
-      <div className='max-w-6xl mx-auto'>
+    <section className='min-h-screen bg-slate-50 py-24 px-6'>
 
-        <div className='bg-white rounded-3xl overflow-hidden shadow-2xl'>
+      <div className='max-w-7xl mx-auto'>
+       
 
-          <div className='grid lg:grid-cols-2'>
+        {/* TOP SECTION */}
+        <div className='grid lg:grid-cols-3 gap-10'>
 
-            {/* LEFT IMAGE */}
-            <div className='h-full'>
+          {/* LEFT */}
+          <div className='lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-10 shadow-sm'>
+
+            <div className='flex flex-col md:flex-row gap-8'>
 
               <img
-                src={mentor.avatar || 'https://via.placeholder.com/500'}
+                src={
+                  mentor.avatar 
+                }
                 alt={mentor.name}
-                className='w-full h-full object-cover min-h-125'
+                className='w-52 h-52 rounded-3xl object-cover border border-slate-200'
               />
 
-            </div>
+              <div className='flex-1'>
 
-            {/* RIGHT CONTENT */}
-            <div className='p-10 lg:p-14 flex flex-col justify-center'>
+                <div className='flex items-center gap-4 mb-4'>
 
-              <div className='flex items-center justify-between gap-4'>
+                  <h1 className='text-5xl font-black text-slate-900'>
 
-                <h1 className='text-5xl font-black text-gray-900'>
-                  {mentor.name}
-                </h1>
+                    {mentor.name}
 
-                <div className='flex items-center gap-2 bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-semibold'>
-                  <Star size={18} fill='currentColor' />
-                  {mentor.mentorProfile?.avgRating || 5}
+                  </h1>
+
+                  <div className='flex items-center gap-1 bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold'>
+
+                    <Star
+                      size={18}
+                      fill='currentColor'
+                    />
+
+                    {
+                      mentor.mentorProfile
+                        ?.avgRating || 5
+                    }
+
+                  </div>
+
                 </div>
 
-              </div>
+                <p className='text-xl text-slate-500 mb-6'>
 
-              <p className='text-2xl text-gray-500 font-semibold mt-4'>
-                {mentor.mentorProfile?.expertise?.join(', ') || 'Mentor'}
-              </p>
+                  {
+                    mentor.mentorProfile
+                      ?.bio
+                  }
 
-              <p className='text-gray-600 text-lg leading-relaxed mt-8'>
-                {mentor.mentorProfile?.bio || 'No bio available'}
-              </p>
+                </p>
 
-              <div className='mt-10 grid sm:grid-cols-2 gap-6'>
+                {/* EXPERTISE */}
+                <div className='flex flex-wrap gap-3 mb-8'>
 
-                <div className='bg-gray-100 rounded-2xl p-6'>
-                  <p className='text-gray-500 mb-2'>
-                    Session Price
-                  </p>
+                  {
+                    mentor.mentorProfile
+                      ?.expertise
+                      ?.map((item, index) => (
 
-                  <h2 className='text-4xl font-black text-gray-900'>
-                    ₹{mentor.mentorProfile?.pricing || 499}
-                  </h2>
+                        <div
+                          key={index}
+                          className='bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl font-medium'
+                        >
+
+                          {item}
+
+                        </div>
+                      ))
+                  }
+
                 </div>
 
-                <div className='bg-gray-100 rounded-2xl p-6'>
-                  <p className='text-gray-500 mb-2'>
-                    Expertise
-                  </p>
+                {/* STATS */}
+                <div className='flex flex-wrap gap-8'>
 
-                  <h2 className='text-2xl font-bold text-gray-900'>
-                    {mentor.mentorProfile?.expertise?.join(', ') || 'General'}
-                  </h2>
-                </div>
+                  <div>
 
-              </div>
-
-              {/* DATE PICKER */}
-              <div className='mt-10'>
-
-                <label className='block text-lg font-semibold mb-3'>
-                  Select Date
-                </label>
-
-                <input
-                  type='date'
-                  value={selectedDate}
-                  onChange={handleDateChange}
-                  className='border border-gray-300 rounded-2xl px-5 py-3 w-full outline-none'
-                />
-
-              </div>
-
-              {/* AVAILABLE SLOTS */}
-              <div className='mt-10'>
-
-                <h2 className='text-2xl font-bold mb-5'>
-                  Available Slots
-                </h2>
-
-                {
-                 !slots || slots.length === 0 ? (
-                    <p className='text-gray-500'>
-                      No slots available
+                    <p className='text-slate-400 text-sm mb-1'>
+                      Pricing
                     </p>
-                  ) : (
-                    <div className='flex flex-wrap gap-4'>
 
-                      {
-                        slots?.map((slot, index) => (
+                    <h3 className='text-3xl font-black text-slate-900'>
 
-                          <button
-                            key={index}
-                            onClick={() => setSelectedSlot(slot)}
-                            className={`px-5 py-3 rounded-2xl font-semibold border transition ${
-                              selectedSlot?.startTimeISO === slot.startTimeISO
-                                ? 'bg-black text-white'
-                                : 'bg-white text-black border-gray-300'
-                            }`}
-                          >
-                            {slot.formattedStartTime}
-                          </button>
-                        ))
+                      ₹{
+                        mentor.mentorProfile
+                          ?.pricing
                       }
 
-                    </div>
-                  )
-                }
+                    </h3>
+
+                  </div>
+
+                  <div>
+
+                    <p className='text-slate-400 text-sm mb-1'>
+                      Reviews
+                    </p>
+
+                    <h3 className='text-3xl font-black text-slate-900'>
+
+                      {
+                        mentor.mentorProfile
+                          ?.totalReviews || 0
+                      }
+
+                    </h3>
+
+                  </div>
+
+                </div>
 
               </div>
-
-              {/* BOOK BUTTON */}
-              <button
-                onClick={handleBooking}
-                className='mt-12 bg-black text-white py-4 rounded-2xl text-lg font-semibold hover:scale-[1.02] transition'
-              >
-                Book Session
-              </button>
 
             </div>
 
           </div>
+
+          {/* RIGHT */}
+          <div className='bg-white border border-slate-200 rounded-3xl p-8 shadow-sm h-fit'>
+
+            <div className='flex items-center gap-3 mb-6'>
+
+              <CalendarDays
+                className='text-indigo-600'
+              />
+
+              <h2 className='text-2xl font-bold text-slate-900'>
+                Book Session
+              </h2>
+
+            </div>
+
+            <input
+              type='date'
+              value={selectedDate}
+              onChange={handleDateChange}
+              className='w-full border border-slate-300 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-indigo-500 mb-6'
+            />
+
+            <div className='space-y-4 max-h-100 overflow-y-auto'>
+
+              {
+                slots.length > 0 ? (
+
+                  slots.map((slot, index) => (
+
+                    <button
+                      key={index}
+                      onClick={() =>
+                        handleBookSession(slot)
+                      }
+                      className='w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-4 rounded-2xl font-semibold transition'
+                    >
+
+                      {
+                        slot.formattedStartTime
+                      }
+
+                    </button>
+                  ))
+
+                ) : (
+
+                  <div className='text-slate-500 text-center py-10'>
+                    No available slots
+                  </div>
+                )
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* REVIEWS */}
+        <div className='mt-16'>
+
+          <div className='flex items-center justify-between mb-10'>
+
+            <h2 className='text-4xl font-black text-slate-900'>
+              Reviews
+            </h2>
+
+            <div className='text-slate-500 font-medium'>
+
+              {reviews.length} Reviews
+
+            </div>
+
+          </div>
+
+          {
+            reviews.length === 0 ? (
+
+              <div className='bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-sm text-slate-500'>
+                No reviews yet
+              </div>
+
+            ) : (
+
+              <div className='grid md:grid-cols-2 gap-8'>
+
+                {
+                  reviews.map((review) => (
+
+                    <div
+                      key={review._id}
+                      className='bg-white border border-slate-200 rounded-3xl p-8 shadow-sm'
+                    >
+
+                      <div className='flex items-center gap-4 mb-6'>
+
+                        <img
+                          src={
+                            review.userId?.avatar ||
+                            'https://via.placeholder.com/100'
+                          }
+                          alt='user'
+                          className='w-16 h-16 rounded-full object-cover'
+                        />
+
+                        <div>
+
+                          <h3 className='text-xl font-bold text-slate-900'>
+                            {
+                              review.userId?.name
+                            }
+                          </h3>
+
+                          <p className='text-slate-500 text-sm'>
+                            {
+                              new Date(
+                                review.createdAt
+                              ).toLocaleDateString()
+                            }
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      <div className='flex items-center gap-1 mb-5'>
+
+                        {
+                          [...Array(review.rating)]
+                            .map((_, index) => (
+
+                              <Star
+                                key={index}
+                                size={18}
+                                fill='currentColor'
+                                className='text-amber-400'
+                              />
+                            ))
+                        }
+
+                      </div>
+
+                      <p className='text-slate-600 leading-relaxed text-lg'>
+
+                        {review.comment}
+
+                      </p>
+
+                    </div>
+                  ))
+                }
+
+              </div>
+            )
+          }
 
         </div>
 

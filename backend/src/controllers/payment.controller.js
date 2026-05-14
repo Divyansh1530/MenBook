@@ -6,6 +6,8 @@ import { Booking } from "../models/booking.model.js";
 import { Payment } from "../models/payment.model.js";
 import razorpay from "../utils/razorpay.js";
 import crypto from 'crypto'
+import { User } from "../models/user.model.js";
+import sendEmail from "../utils/sendEmail.js";
 
 const createOrder = asyncHandler(async(req,res) => {
 
@@ -135,17 +137,113 @@ const verifyPayment = asyncHandler(async(req,res) => {
         )
     }
 
+    /*
+        UPDATE BOOKING
+    */
+
     booking.status = "confirmed"
 
     booking.paymentStatus = "paid"
 
-    booking.razorpayOrderId = razorpay_order_id
+    booking.razorpayOrderId =
+        razorpay_order_id
 
-    booking.razorpayPaymentId = razorpay_payment_id
+    booking.razorpayPaymentId =
+        razorpay_payment_id
 
-    booking.razorpaySignature = razorpay_signature
+    booking.razorpaySignature =
+        razorpay_signature
+
+    /*
+        GENERATE MEETING LINK
+    */
+
+    booking.meetingLink =
+        `https://meet.jit.si/menbook-${booking._id}`
 
     await booking.save()
+
+    /*
+        GET USER + MENTOR
+    */
+
+    const user =
+        await User.findById(
+            booking.userId
+        )
+
+    const mentor =
+        await User.findById(
+            booking.mentorId
+        )
+
+    /*
+        SEND EMAIL TO USER
+    */
+
+    await sendEmail({
+
+        to: user.email,
+
+        subject: "Booking Confirmed",
+
+        html: `
+            <h1>
+                Booking Confirmed
+            </h1>
+
+            <p>
+                Your mentorship session
+                has been confirmed.
+            </p>
+
+            <p>
+                Mentor:
+                ${mentor.name}
+            </p>
+
+            <p>
+                Meeting Link:
+                <a href="${booking.meetingLink}">
+                    Join Meeting
+                </a>
+            </p>
+        `
+    })
+
+    /*
+        SEND EMAIL TO MENTOR
+    */
+
+    await sendEmail({
+
+        to: mentor.email,
+
+        subject: "New Session Booked",
+
+        html: `
+            <h1>
+                New Booking
+            </h1>
+
+            <p>
+                A new user booked
+                a session with you.
+            </p>
+
+            <p>
+                User:
+                ${user.name}
+            </p>
+
+            <p>
+                Meeting Link:
+                <a href="${booking.meetingLink}">
+                    Join Meeting
+                </a>
+            </p>
+        `
+    })
 
     return res
         .status(200)
@@ -159,7 +257,6 @@ const verifyPayment = asyncHandler(async(req,res) => {
                 "Payment verified successfully"
             )
         )
-
 })
 
 const razorpayWebhook = asyncHandler(async(req,res) => {

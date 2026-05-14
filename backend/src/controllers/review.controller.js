@@ -93,6 +93,44 @@ const createReview = asyncHandler(async(req,res) => {
 
 })
 
+const getMentorReviews = asyncHandler(async(req,res) => {
+
+    const {mentorId} = req.params
+
+    if (!mongoose.Types.ObjectId.isValid(mentorId)) {
+        throw new ApiError(400,"Invalid Mentor Id")
+    }
+
+    const mentor = await User.findById(mentorId)
+
+    if (!mentor) {
+        throw new ApiError(404,"Mentor Not Found")
+    }
+
+    if (mentor.role !== "mentor") {
+        throw new ApiError(400,"User is not a mentor")
+    }
+
+    const reviews = await Review.find({
+        mentorId
+    })
+    .populate({
+        path:"userId",
+        select:"name avatar"
+    })
+    .sort({
+        createdAt:-1
+    })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,reviews,"Mentor reviews fetched successfully")
+    )
+
+})
+
 export {
-    createReview
+    createReview,
+    getMentorReviews
 }

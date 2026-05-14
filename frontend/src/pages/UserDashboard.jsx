@@ -1,55 +1,96 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import {
-  CalendarDays,
-  Clock3,
-  IndianRupee,
-  BadgeCheck,
-  XCircle
-} from 'lucide-react'
+import { Star } from 'lucide-react'
 
 function UserDashboard() {
 
   const [bookings, setBookings] = useState([])
+
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const [selectedBooking, setSelectedBooking] =
+    useState(null)
 
-    const fetchBookings = async () => {
+  const [rating, setRating] = useState(5)
 
-      try {
+  const [comment, setComment] = useState('')
 
-        const response = await axios.get(
-          'http://localhost:8000/api/v1.1/booking/user-bookings',
-          {
-            withCredentials: true
-          }
-        )
+  /*
+      FETCH BOOKINGS
+  */
 
-        console.log(response.data)
+  const fetchBookings = async () => {
 
-        setBookings(response.data.data)
+    try {
 
-      } catch (error) {
+      const response = await axios.get(
+        'http://localhost:8000/api/v1.1/booking/user-bookings',
+        {
+          withCredentials: true
+        }
+      )
 
-        console.log(error)
+      setBookings(response.data.data)
 
-      } finally {
-        setLoading(false)
-      }
+    } catch (error) {
+
+      console.log(error)
+
+    } finally {
+
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
 
     fetchBookings()
 
   }, [])
 
-  const cancelBooking = async (bookingId) => {
+  /*
+      OPEN REVIEW MODAL
+  */
+
+  const openReviewModal = (booking) => {
+
+    setSelectedBooking(booking)
+
+    setRating(5)
+
+    setComment('')
+  }
+
+  /*
+      CLOSE REVIEW MODAL
+  */
+
+  const closeReviewModal = () => {
+
+    setSelectedBooking(null)
+  }
+
+  /*
+      SUBMIT REVIEW
+  */
+
+  const handleSubmitReview = async () => {
 
     try {
 
-      const response = await axios.patch(
-        `http://localhost:8000/api/v1.1/booking/${bookingId}/cancel`,
-        {},
+      const response = await axios.post(
+        'http://localhost:8000/api/v1.1/review/create',
+        {
+          mentorId:
+            selectedBooking.mentorId._id,
+
+          bookingId:
+            selectedBooking._id,
+
+          rating,
+
+          comment
+        },
         {
           withCredentials: true
         }
@@ -57,229 +98,313 @@ function UserDashboard() {
 
       console.log(response.data)
 
-      setBookings((prev) =>
-        prev.map((booking) =>
-          booking._id === bookingId
-            ? {
-                ...booking,
-                status: 'cancelled'
-              }
-            : booking
-        )
-      )
+      alert('Review submitted successfully')
 
-      alert('Booking cancelled')
+      closeReviewModal()
 
     } catch (error) {
 
-      console.log(error)
+      console.log(error.response.data)
 
       alert(
         error.response?.data?.message ||
-        'Cancellation failed'
+        'Failed to submit review'
       )
     }
   }
 
+  /*
+      FORMAT DATE
+  */
+
+  const formatDate = (date) => {
+
+    return new Date(date).toLocaleString([], {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    })
+  }
+
+  /*
+      STATUS COLOR
+  */
+
+  const getStatusColor = (status) => {
+
+    switch (status) {
+
+      case 'completed':
+        return 'bg-green-100 text-green-700'
+
+      case 'confirmed':
+        return 'bg-blue-100 text-blue-700'
+
+      case 'cancelled':
+        return 'bg-red-100 text-red-700'
+
+      default:
+        return 'bg-yellow-100 text-yellow-700'
+    }
+  }
+
   if (loading) {
+
     return (
       <div className='min-h-screen flex items-center justify-center text-3xl font-bold'>
-        Loading bookings...
+        Loading Dashboard...
       </div>
     )
   }
 
   return (
-    <section className='min-h-screen bg-gray-100 py-20 px-6'>
+
+    <section className='min-h-screen bg-slate-50 py-24 px-6'>
 
       <div className='max-w-7xl mx-auto'>
 
         {/* HEADER */}
-        <div className='mb-14'>
+        <div className='mb-12'>
 
-          <h1 className='text-5xl font-black text-gray-900'>
+          <h1 className='text-5xl font-black text-slate-900 mb-4'>
             My Bookings
           </h1>
 
-          <p className='text-gray-500 mt-4 text-lg'>
-            Track all your booked mentor sessions
+          <p className='text-slate-600 text-lg'>
+            Track your mentoring sessions.
           </p>
 
         </div>
 
+        {/* EMPTY STATE */}
         {
-          bookings.length === 0 ? (
+          bookings.length === 0 && (
 
-            <div className='bg-white rounded-3xl p-16 text-center shadow-lg'>
+            <div className='bg-white border border-slate-200 rounded-3xl p-16 text-center shadow-sm'>
 
-              <h2 className='text-3xl font-bold text-gray-800'>
-                No bookings found
+              <h2 className='text-3xl font-bold text-slate-900 mb-4'>
+                No Bookings Yet
               </h2>
 
-              <p className='text-gray-500 mt-4'>
-                Book your first mentor session
+              <p className='text-slate-500 text-lg'>
+                Your booked sessions will appear here.
               </p>
 
             </div>
+          )
+        }
 
-          ) : (
+        {/* BOOKINGS */}
+        <div className='grid gap-8'>
 
-            <div className='grid gap-8'>
+          {
+            bookings.map((booking) => (
 
-              {
-                bookings.map((booking) => (
+              <div
+                key={booking._id}
+                className='bg-white border border-slate-200 rounded-3xl p-8 shadow-sm'
+              >
 
-                  <div
-                    key={booking._id}
-                    className='bg-white rounded-3xl shadow-xl overflow-hidden'
-                  >
+                <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8'>
 
-                    <div className='grid md:grid-cols-4'>
+                  {/* LEFT */}
+                  <div className='flex items-center gap-5'>
 
-                      {/* IMAGE */}
-                      <div className='h-full'>
+                    <img
+                      src={
+                        booking.mentorId?.avatar ||
+                        'https://via.placeholder.com/100'
+                      }
+                      alt='mentor'
+                      className='w-20 h-20 rounded-full object-cover border border-slate-200'
+                    />
 
-                        <img
-                          src={
-                            booking.mentorId?.avatar ||
-                            'https://via.placeholder.com/400'
-                          }
-                          alt={booking.mentorId?.name}
-                          className='w-full h-full object-cover min-h-62.5'
-                        />
+                    <div>
 
-                      </div>
+                      <h2 className='text-2xl font-bold text-slate-900 mb-2'>
 
-                      {/* CONTENT */}
-                      <div className='md:col-span-3 p-8 flex flex-col justify-between'>
+                        {booking.mentorId?.name}
 
-                        <div>
+                      </h2>
 
-                          <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-5'>
+                      <p className='text-slate-500 mb-1'>
 
-                            <div>
+                        {
+                          booking.mentorId
+                            ?.mentorProfile
+                            ?.expertise?.[0]
+                        }
 
-                              <h2 className='text-4xl font-black text-gray-900'>
-                                {booking.mentorId?.name}
-                              </h2>
+                      </p>
 
-                              <p className='text-gray-500 text-lg mt-2'>
-                                {
-                                  booking.mentorId?.mentorProfile?.expertise?.join(', ')
-                                }
-                              </p>
+                      <p className='text-slate-600 font-medium'>
 
-                            </div>
+                        {formatDate(booking.startTime)}
 
-                            <div className='flex flex-wrap gap-3'>
-
-                              <div className='bg-green-100 text-green-700 px-5 py-2 rounded-full font-semibold'>
-                                Payment: {booking.paymentStatus}
-                              </div>
-
-                              <div className='bg-blue-100 text-blue-700 px-5 py-2 rounded-full font-semibold'>
-                                Booking: {booking.status}
-                              </div>
-
-                            </div>
-
-                          </div>
-
-                          {/* DETAILS */}
-                          <div className='grid sm:grid-cols-3 gap-5 mt-10'>
-
-                            <div className='bg-gray-100 rounded-2xl p-5'>
-
-                              <div className='flex items-center gap-2 text-gray-500 mb-2'>
-                                <CalendarDays size={18} />
-                                Date
-                              </div>
-
-                              <h3 className='text-xl font-bold text-gray-900'>
-                                {
-                                  new Date(booking.startTime)
-                                  .toLocaleDateString()
-                                }
-                              </h3>
-
-                            </div>
-
-                            <div className='bg-gray-100 rounded-2xl p-5'>
-
-                              <div className='flex items-center gap-2 text-gray-500 mb-2'>
-                                <Clock3 size={18} />
-                                Time
-                              </div>
-
-                              <h3 className='text-xl font-bold text-gray-900'>
-                                {
-                                  new Date(booking.startTime)
-                                  .toLocaleTimeString([], {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })
-                                }
-                              </h3>
-
-                            </div>
-
-                            <div className='bg-gray-100 rounded-2xl p-5'>
-
-                              <div className='flex items-center gap-2 text-gray-500 mb-2'>
-                                <IndianRupee size={18} />
-                                Amount
-                              </div>
-
-                              <h3 className='text-xl font-bold text-gray-900'>
-                                ₹{booking.amount}
-                              </h3>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                        {/* ACTIONS */}
-                        <div className='flex flex-wrap gap-4 mt-10'>
-
-                          {
-                            booking.status !== 'cancelled' && (
-
-                              <button
-                                onClick={() => cancelBooking(booking._id)}
-                                className='flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-2xl font-semibold hover:opacity-90 transition'
-                              >
-                                <XCircle size={20} />
-                                Cancel Booking
-                              </button>
-
-                            )
-                          }
-
-                          {
-                            booking.paymentStatus === 'paid' && (
-
-                              <div className='flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-2xl font-semibold'>
-                                <BadgeCheck size={20} />
-                                Payment Successful
-                              </div>
-
-                            )
-                          }
-
-                        </div>
-
-                      </div>
+                      </p>
 
                     </div>
 
                   </div>
-                ))
-              }
+
+                  {/* RIGHT */}
+                  <div className='flex flex-col items-start lg:items-end gap-4'>
+
+                    {/* STATUS */}
+                    <div
+                      className={`px-4 py-2 rounded-xl font-semibold capitalize ${getStatusColor(booking.status)}`}
+                    >
+
+                      {booking.status}
+
+                    </div>
+
+                    {/* PAYMENT */}
+                    <div className='text-slate-600 font-semibold'>
+
+                      Payment:
+                      {' '}
+                      <span className='capitalize'>
+
+                        {booking.paymentStatus}
+
+                      </span>
+
+                    </div>
+
+                    {/* PRICE */}
+                    <div className='text-3xl font-black text-slate-900'>
+
+                      ₹{booking.amount}
+
+                    </div>
+
+                    {/* REVIEW BUTTON */}
+                    {
+                      booking.status ===
+                      'completed' && (
+
+                        <button
+                          onClick={() =>
+                            openReviewModal(booking)
+                          }
+                          className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold transition'
+                        >
+
+                          Leave Review
+
+                        </button>
+                      )
+                    }
+
+                  </div>
+
+                </div>
+
+              </div>
+            ))
+          }
+
+        </div>
+
+        {/* REVIEW MODAL */}
+        {
+          selectedBooking && (
+
+            <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4'>
+
+              <div className='bg-white rounded-3xl w-full max-w-xl p-8 relative'>
+
+                {/* CLOSE */}
+                <button
+                  onClick={closeReviewModal}
+                  className='absolute top-5 right-5 text-slate-500 hover:text-black text-xl'
+                >
+
+                  ✕
+
+                </button>
+
+                <h2 className='text-3xl font-black text-slate-900 mb-6'>
+
+                  Leave Review
+
+                </h2>
+
+                {/* RATING */}
+                <div className='mb-6'>
+
+                  <label className='block font-semibold mb-3'>
+                    Rating
+                  </label>
+
+                  <div className='flex gap-2'>
+
+                    {
+                      [1, 2, 3, 4, 5].map((star) => (
+
+                        <button
+                          key={star}
+                          onClick={() =>
+                            setRating(star)
+                          }
+                        >
+
+                          <Star
+                            size={34}
+                            fill={
+                              star <= rating
+                                ? 'currentColor'
+                                : 'none'
+                            }
+                            className={
+                              star <= rating
+                                ? 'text-amber-400'
+                                : 'text-slate-300'
+                            }
+                          />
+
+                        </button>
+                      ))
+                    }
+
+                  </div>
+
+                </div>
+
+                {/* COMMENT */}
+                <div className='mb-8'>
+
+                  <label className='block font-semibold mb-3'>
+                    Comment
+                  </label>
+
+                  <textarea
+                    rows={5}
+                    value={comment}
+                    onChange={(e) =>
+                      setComment(
+                        e.target.value
+                      )
+                    }
+                    placeholder='Share your experience...'
+                    className='w-full border border-slate-300 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-indigo-500'
+                  />
+
+                </div>
+
+                {/* BUTTON */}
+                <button
+                  onClick={handleSubmitReview}
+                  className='w-full bg-black text-white py-4 rounded-2xl font-semibold hover:opacity-90 transition'
+                >
+
+                  Submit Review
+
+                </button>
+
+              </div>
 
             </div>
-
           )
         }
 

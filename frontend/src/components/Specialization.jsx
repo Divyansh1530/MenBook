@@ -18,6 +18,7 @@ function Specialization() {
   const navigate = useNavigate()
   const [mentorCount, setMentorCount] = useState(0)
 
+
   useEffect(() => {
     const fetchMentors = async () => {
       try {
@@ -75,7 +76,7 @@ function Specialization() {
         {categories.map((cat) => (
           <div
             key={cat.id}
-            onClick={() => navigate('/mentors')}
+            onClick={() => navigate(`/mentors?search=${cat.name}`)}
             className='group relative bg-white/70 backdrop-blur-sm rounded-4xl p-8 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(79,70,229,0.1)] hover:bg-white transition-all duration-500 cursor-pointer overflow-hidden'
           >
             {/* SUBTLE BACKGROUND ACCENT */}

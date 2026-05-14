@@ -170,9 +170,34 @@ const cancelBooking = asyncHandler(async(req,res) => {
     )
 })
 
+const markBookingComplete = asyncHandler(async(req,res) => {
+
+    const {bookingId} = req.params
+
+    const booking = await Booking.findById(bookingId)
+
+    if (!booking) {
+        throw new ApiError(404,"Booking not found")
+    }
+
+    if (booking.mentorId.toString() !== req.user._id.toString()) {
+        throw new ApiError(403,"Unauthorized")
+    }
+
+    booking.status = "completed"
+
+    await booking.save()
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,booking,"Booking marked completed")
+    )
+})
 export {
     createBooking,
     getUserBookings,
     getMentorBookings,
-    cancelBooking
+    cancelBooking,
+    markBookingComplete
 }
