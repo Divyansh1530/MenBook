@@ -1,417 +1,187 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Star } from 'lucide-react'
+import { Star, Calendar, CheckSquare, TrendingUp, ArrowRight, X } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 function UserDashboard() {
-
+  const navigate = useNavigate()
   const [bookings, setBookings] = useState([])
-
   const [loading, setLoading] = useState(true)
-
-  const [selectedBooking, setSelectedBooking] =
-    useState(null)
-
+  const [selectedBooking, setSelectedBooking] = useState(null)
   const [rating, setRating] = useState(5)
-
   const [comment, setComment] = useState('')
+  const [user, setUser] = useState(null)
 
-  /*
-      FETCH BOOKINGS
-  */
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) setUser(JSON.parse(storedUser))
+    fetchBookings()
+  }, [])
 
   const fetchBookings = async () => {
-
     try {
-
-      const response = await axios.get(
-        'http://localhost:8000/api/v1.1/booking/user-bookings',
-        {
-          withCredentials: true
-        }
-      )
-
+      const response = await axios.get('http://localhost:8000/api/v1.1/booking/user-bookings', {
+        withCredentials: true
+      })
       setBookings(response.data.data)
-
     } catch (error) {
-
       console.log(error)
-
     } finally {
-
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-
-    fetchBookings()
-
-  }, [])
-
-  /*
-      OPEN REVIEW MODAL
-  */
-
-  const openReviewModal = (booking) => {
-
-    setSelectedBooking(booking)
-
-    setRating(5)
-
-    setComment('')
-  }
-
-  /*
-      CLOSE REVIEW MODAL
-  */
-
-  const closeReviewModal = () => {
-
-    setSelectedBooking(null)
-  }
-
-  /*
-      SUBMIT REVIEW
-  */
-
   const handleSubmitReview = async () => {
-
     try {
-
-      const response = await axios.post(
-        'http://localhost:8000/api/v1.1/review/create',
-        {
-          mentorId:
-            selectedBooking.mentorId._id,
-
-          bookingId:
-            selectedBooking._id,
-
-          rating,
-
-          comment
-        },
-        {
-          withCredentials: true
-        }
-      )
-
-      console.log(response.data)
-
+      await axios.post('http://localhost:8000/api/v1.1/review/create', {
+        mentorId: selectedBooking.mentorId._id,
+        bookingId: selectedBooking._id,
+        rating,
+        comment
+      }, { withCredentials: true })
       alert('Review submitted successfully')
-
-      closeReviewModal()
-
+      setSelectedBooking(null)
     } catch (error) {
-
-      console.log(error.response.data)
-
-      alert(
-        error.response?.data?.message ||
-        'Failed to submit review'
-      )
+      alert(error.response?.data?.message || 'Failed to submit review')
     }
   }
 
-  /*
-      FORMAT DATE
-  */
+  const formatDate = (date) => new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
 
-  const formatDate = (date) => {
+  if (loading) return (
+    <div className="min-h-screen bg-[#fdfaf3] flex items-center justify-center font-serif text-2xl text-gray-400">
+      Loading your journey...
+    </div>
+  )
 
-    return new Date(date).toLocaleString([], {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    })
-  }
-
-  /*
-      STATUS COLOR
-  */
-
-  const getStatusColor = (status) => {
-
-    switch (status) {
-
-      case 'completed':
-        return 'bg-green-100 text-green-700'
-
-      case 'confirmed':
-        return 'bg-blue-100 text-blue-700'
-
-      case 'cancelled':
-        return 'bg-red-100 text-red-700'
-
-      default:
-        return 'bg-yellow-100 text-yellow-700'
-    }
-  }
-
-  if (loading) {
-
-    return (
-      <div className='min-h-screen flex items-center justify-center text-3xl font-bold'>
-        Loading Dashboard...
-      </div>
-    )
-  }
+  // Calculate Stats
+  const upcomingCount = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length
+  const completedCount = bookings.filter(b => b.status === 'completed').length
+  const totalInvested = bookings.reduce((acc, curr) => acc + (curr.paymentStatus === 'completed' ? curr.amount : 0), 0)
 
   return (
-
-    <section className='min-h-screen bg-slate-50 py-24 px-6'>
-
-      <div className='max-w-7xl mx-auto'>
-
-        {/* HEADER */}
-        <div className='mb-12'>
-
-          <h1 className='text-5xl font-black text-slate-900 mb-4'>
-            My Bookings
-          </h1>
-
-          <p className='text-slate-600 text-lg'>
-            Track your mentoring sessions.
-          </p>
-
+    <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+          <div>
+            <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">WELCOME BACK</p>
+            <h1 className="font-serif text-7xl text-[#1a1a1a] mb-4 tracking-tight lowercase">
+              {user?.name.split(' ')[0]}.
+            </h1>
+            <p className="text-gray-500 text-lg">A snapshot of your learning journey.</p>
+          </div>
+          <button 
+            onClick={() => navigate('/mentors')}
+            className="bg-[#120f0a] text-white px-8 py-4 rounded-full font-medium flex items-center gap-3 hover:bg-black transition-all group"
+          >
+            Find a mentor <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
 
-        {/* EMPTY STATE */}
-        {
-          bookings.length === 0 && (
+        {/* SNAPSHOT STAT CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+          <StatCard icon={<Calendar size={18} />} label="UPCOMING SESSIONS" value={upcomingCount} />
+          <StatCard icon={<CheckSquare size={18} />} label="COMPLETED" value={completedCount} />
+          <StatCard icon={<TrendingUp size={18} />} label="INVESTED" value={`₹${totalInvested}`} />
+        </div>
 
-            <div className='bg-white border border-slate-200 rounded-3xl p-16 text-center shadow-sm'>
+        {/* BOOKINGS LIST */}
+        <div className="space-y-8">
+          <div className="flex justify-between items-end border-b border-black/5 pb-4">
+            <h2 className="font-serif text-4xl text-[#1a1a1a]">Upcoming</h2>
+            <Link to="/mentors" className="text-sm font-medium text-gray-400 hover:text-black">View all &rarr;</Link>
+          </div>
 
-              <h2 className='text-3xl font-bold text-slate-900 mb-4'>
-                No Bookings Yet
-              </h2>
-
-              <p className='text-slate-500 text-lg'>
-                Your booked sessions will appear here.
-              </p>
-
+          {bookings.length === 0 ? (
+            <div className="border-2 border-dashed border-black/5 rounded-4xl p-20 text-center">
+              <p className="text-gray-500">Nothing scheduled yet. <Link to="/mentors" className="text-red-500 font-medium hover:underline">Browse mentors</Link></p>
             </div>
-          )
-        }
-
-        {/* BOOKINGS */}
-        <div className='grid gap-8'>
-
-          {
-            bookings.map((booking) => (
-
-              <div
-                key={booking._id}
-                className='bg-white border border-slate-200 rounded-3xl p-8 shadow-sm'
-              >
-
-                <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8'>
-
-                  {/* LEFT */}
-                  <div className='flex items-center gap-5'>
-
-                    <img
-                      src={
-                        booking.mentorId?.avatar ||
-                        'https://via.placeholder.com/100'
-                      }
-                      alt='mentor'
-                      className='w-20 h-20 rounded-full object-cover border border-slate-200'
-                    />
-
-                    <div>
-
-                      <h2 className='text-2xl font-bold text-slate-900 mb-2'>
-
-                        {booking.mentorId?.name}
-
-                      </h2>
-
-                      <p className='text-slate-500 mb-1'>
-
-                        {
-                          booking.mentorId
-                            ?.mentorProfile
-                            ?.expertise?.[0]
-                        }
-
-                      </p>
-
-                      <p className='text-slate-600 font-medium'>
-
-                        {formatDate(booking.startTime)}
-
-                      </p>
-
+          ) : (
+            <div className="grid gap-6">
+              {bookings.map((booking) => (
+                <div key={booking._id} className="bg-white/40 border border-black/5 rounded-4xl p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/5">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div className="flex items-center gap-6">
+                      <img 
+                        src={booking.mentorId?.avatar || 'https://via.placeholder.com/100'} 
+                        className="w-16 h-16 rounded-2xl object-cover grayscale-[0.5]" 
+                        alt="mentor" 
+                      />
+                      <div>
+                        <h3 className="font-serif text-2xl text-[#1a1a1a]">{booking.mentorId?.name}</h3>
+                        <p className="text-gray-500 text-sm">{formatDate(booking.startTime)}</p>
+                      </div>
                     </div>
-
-                  </div>
-
-                  {/* RIGHT */}
-                  <div className='flex flex-col items-start lg:items-end gap-4'>
-
-                    {/* STATUS */}
-                    <div
-                      className={`px-4 py-2 rounded-xl font-semibold capitalize ${getStatusColor(booking.status)}`}
-                    >
-
-                      {booking.status}
-
-                    </div>
-
-                    {/* PAYMENT */}
-                    <div className='text-slate-600 font-semibold'>
-
-                      Payment:
-                      {' '}
-                      <span className='capitalize'>
-
-                        {booking.paymentStatus}
-
-                      </span>
-
-                    </div>
-
-                    {/* PRICE */}
-                    <div className='text-3xl font-black text-slate-900'>
-
-                      ₹{booking.amount}
-
-                    </div>
-
-                    {/* REVIEW BUTTON */}
-                    {
-                      booking.status ===
-                      'completed' && (
-
-                        <button
-                          onClick={() =>
-                            openReviewModal(booking)
-                          }
-                          className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold transition'
+                    
+                    <div className="flex items-center gap-8">
+                      <div className="text-right">
+                        <span className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                          booking.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'
+                        }`}>
+                          {booking.status}
+                        </span>
+                        <p className="font-serif text-xl mt-1 text-[#1a1a1a]">₹{booking.amount}</p>
+                      </div>
+                      
+                      {booking.status === 'completed' && (
+                        <button 
+                          onClick={() => setSelectedBooking(booking)}
+                          className="bg-[#120f0a] text-white px-6 py-3 rounded-2xl text-sm font-medium hover:bg-black transition-all"
                         >
-
                           Leave Review
-
                         </button>
-                      )
-                    }
-
+                      )}
+                    </div>
                   </div>
-
                 </div>
-
-              </div>
-            ))
-          }
-
+              ))}
+            </div>
+          )}
         </div>
 
         {/* REVIEW MODAL */}
-        {
-          selectedBooking && (
-
-            <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4'>
-
-              <div className='bg-white rounded-3xl w-full max-w-xl p-8 relative'>
-
-                {/* CLOSE */}
-                <button
-                  onClick={closeReviewModal}
-                  className='absolute top-5 right-5 text-slate-500 hover:text-black text-xl'
-                >
-
-                  ✕
-
-                </button>
-
-                <h2 className='text-3xl font-black text-slate-900 mb-6'>
-
-                  Leave Review
-
-                </h2>
-
-                {/* RATING */}
-                <div className='mb-6'>
-
-                  <label className='block font-semibold mb-3'>
-                    Rating
-                  </label>
-
-                  <div className='flex gap-2'>
-
-                    {
-                      [1, 2, 3, 4, 5].map((star) => (
-
-                        <button
-                          key={star}
-                          onClick={() =>
-                            setRating(star)
-                          }
-                        >
-
-                          <Star
-                            size={34}
-                            fill={
-                              star <= rating
-                                ? 'currentColor'
-                                : 'none'
-                            }
-                            className={
-                              star <= rating
-                                ? 'text-amber-400'
-                                : 'text-slate-300'
-                            }
-                          />
-
-                        </button>
-                      ))
-                    }
-
-                  </div>
-
-                </div>
-
-                {/* COMMENT */}
-                <div className='mb-8'>
-
-                  <label className='block font-semibold mb-3'>
-                    Comment
-                  </label>
-
-                  <textarea
-                    rows={5}
-                    value={comment}
-                    onChange={(e) =>
-                      setComment(
-                        e.target.value
-                      )
-                    }
-                    placeholder='Share your experience...'
-                    className='w-full border border-slate-300 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-indigo-500'
-                  />
-
-                </div>
-
-                {/* BUTTON */}
-                <button
-                  onClick={handleSubmitReview}
-                  className='w-full bg-black text-white py-4 rounded-2xl font-semibold hover:opacity-90 transition'
-                >
-
-                  Submit Review
-
-                </button>
-
+        {selectedBooking && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+            <div className="bg-[#fdfaf3] rounded-[40px] w-full max-w-xl p-12 relative border border-black/5 shadow-2xl">
+              <button onClick={() => setSelectedBooking(null)} className="absolute top-8 right-8 text-gray-400 hover:text-black transition-colors">
+                <X size={24} />
+              </button>
+              <h2 className="font-serif text-4xl text-[#1a1a1a] mb-8">How was your session?</h2>
+              <div className="flex gap-2 mb-8">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button key={star} onClick={() => setRating(star)}>
+                    <Star size={32} fill={star <= rating ? "#e94e36" : "none"} className={star <= rating ? "text-[#e94e36]" : "text-gray-200"} />
+                  </button>
+                ))}
               </div>
-
+              <textarea 
+                rows={4} 
+                value={comment} 
+                onChange={(e) => setComment(e.target.value)} 
+                placeholder="Your experience helps others..."
+                className="w-full bg-white border border-black/5 rounded-3xl p-6 outline-none focus:ring-2 focus:ring-black/5 mb-8 font-sans"
+              />
+              <button onClick={handleSubmitReview} className="w-full bg-[#120f0a] text-white py-4 rounded-full font-medium text-lg hover:bg-black transition-all">
+                Submit Review
+              </button>
             </div>
-          )
-        }
-
+          </div>
+        )}
       </div>
-
     </section>
   )
 }
+
+const StatCard = ({ icon, label, value }) => (
+  <div className="bg-white/40 border border-black/5 rounded-4xl p-10 flex flex-col items-start transition-all hover:bg-white hover:shadow-lg hover:shadow-black/5">
+    <div className="flex items-center gap-2 text-gray-400 mb-6">
+      {icon}
+      <span className="text-[10px] font-bold tracking-[0.2em] uppercase">{label}</span>
+    </div>
+    <span className="font-serif text-5xl text-[#1a1a1a]">{value}</span>
+  </div>
+)
 
 export default UserDashboard

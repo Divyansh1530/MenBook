@@ -1,198 +1,105 @@
-import React, { useEffect, useState } from 'react'
-import {
-  ArrowRight,
-  Star,
-  Calendar,
-  ShieldCheck,
-  Video
-} from 'lucide-react'
-
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import React, { useEffect, useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Hero() {
-
-  const navigate = useNavigate()
-
-  const [mentorCount, setMentorCount] = useState(0)
+  const navigate = useNavigate();
+  const [mentorCount, setMentorCount] = useState(0);
 
   useEffect(() => {
-
     const fetchMentors = async () => {
-
       try {
-
-        const response = await axios.get(
-          'http://localhost:8000/api/v1.1/users/mentors'
-        )
-
-        setMentorCount(response.data.data.length)
-
+        const response = await axios.get('http://localhost:8000/api/v1.1/users/mentors');
+        setMentorCount(response.data.data.length);
       } catch (error) {
-
-        console.log(error)
+        console.log(error);
       }
-    }
-
-    fetchMentors()
-
-  }, [])
+    };
+    fetchMentors();
+  }, []);
 
   return (
+    <section className="relative min-h-screen bg-[#fdfaf3] pt-5 md:pt-25 pb-24 px-6 md:px-12 lg:px-24 flex items-center overflow-hidden">
+      
+      {/* DOT PATTERN BACKGROUND - Matching Screenshot 2026-05-15 012506.png */}
+      <div 
+        className="absolute inset-0 z-0 opacity-[0.4]"
+        style={{
+          backgroundImage: `radial-gradient(#e5e7eb 1px, transparent 0)`,
+          backgroundSize: '4px 4px'
+        }}
+      ></div>
 
-    <section className='pt-42 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden'>
-
-      <div className='flex flex-col lg:flex-row items-center gap-12 lg:gap-8'>
-
-        {/* LEFT SIDE */}
-        <div className='flex-1 text-center'>
-
-          {/* TOP BADGE */}
-          <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-medium text-sm mb-6 shadow-sm'>
-
-            <Star className='w-4 h-4 fill-indigo-600' />
-
-            <span>
-              Top rated mentorship platform
-            </span>
-
+      <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center ">
+        <div 
+            className="absolute bottom-[-60%] left-[-30%] md:bottom-[-50%] md:left-[-20%] w-90 h-90 rounded-full opacity-90 blur-[90px] z-0"
+            style={{
+              background: 'radial-gradient(circle, #f5c9be 100%, transparent 70%)'
+            }}
+          />
+        
+        {/* LEFT CONTENT */}
+        <div className="lg:col-span-7 flex flex-col items-start space-y-8">
+          
+          {/* Vetted Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-300 bg-white/80 backdrop-blur-sm text-xs font-medium text-gray-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+            Now with {mentorCount || '240'}+ vetted mentors
           </div>
 
-          {/* HEADING */}
-          <h1 className='hero-heading text-5xl lg:text-6xl font-semibold text-slate-900  mb-6 tracking-normal '>
-
-            Book Mentors{' '}
-
-            <span className='block text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-indigo-400'>
-
-              Grow Faster
-
-            </span>
-
+          {/* Headline */}
+          <h1 className="hero-heading font-serif text-[37px] md:text-8xl text-[#1a1a1a] leading-[1.15] md:leading-[0.9] tracking-tighter transform scale-y-[1.2] origin-left">
+            Find the person <br />
+            worth a <span className="italic relative inline-block">
+              whole hour
+              <span className="absolute md:top-15 top-7 left-0 w-full h-[0.43em] bg-[#f5c9be] -z-10"></span>
+            </span> <br />
+            of your time.
           </h1>
 
-          {/* DESCRIPTION */}
-          <p className='text-lg text-slate-600 mb-8 max-w-2xl mx-auto px-18 md:px-0 leading-relaxed'>
-
-            Connect with experienced mentors for coding,
-            careers, design, business and personal growth.
-            Book 1-on-1 sessions instantly.
-
+          {/* Description */}
+          <p className="max-w-lg text-lg text-gray-600 mt-8 leading-relaxed font-sans z-10">
+            MenBook is a quiet marketplace for honest mentorship — therapists, designers, engineers, founders. No noise, no inflated bios. Just a calendar, and a conversation that moves you.
           </p>
 
-          {/* BUTTONS */}
-          <div className='flex flex-col sm:flex-row items-center gap-4 justify-center'>
-
+          {/* Actions */}
+          <div className="flex flex-wrap items-center gap-8 pt-2 z-10">
             <button
               onClick={() => navigate('/mentors')}
-              className='w-50 sm:w-auto px-3 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-lg transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2'
+              className="bg-[#120f0a] text-[#fdfaf3] px-6 py-3 rounded-full font-medium flex items-center gap-3 hover:bg-black transition-all group text-sm"
             >
-
-              Explore Mentors
-
-              <ArrowRight className='w-5 h-5' />
-
+              Browse mentors
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
-
             <button
               onClick={() => navigate('/signup')}
-              className='w-50 sm:w-auto px-3 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-semibold text-lg transition-all shadow-sm'
+              className="text-[#1a1a1a] font-medium hover:underline flex items-center gap-2 transition-all px-4"
             >
-
-              Become a Mentor
-
+              Become a mentor &rarr;
             </button>
-
           </div>
-
-          {/* SOCIAL PROOF */}
-          <div className='mt-10 flex items-center gap-4 justify-center'>
-
-            <div className='flex -space-x-3'>
-
-              <img
-                src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'
-                alt='user'
-                className='w-10 h-10 rounded-full border-2 border-white object-cover'
-              />
-
-              <img
-                src='https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&q=80'
-                alt='user'
-                className='w-10 h-10 rounded-full border-2 border-white object-cover'
-              />
-
-              <img
-                src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80'
-                alt='user'
-                className='w-10 h-10 rounded-full border-2 border-white object-cover'
-              />
-
-              <div className='w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600'>
-
-                +{mentorCount}
-
-              </div>
-
-            </div>
-
-            <div className='text-sm text-slate-600'>
-
-              <span className='font-bold text-slate-900'>
-                4.9/5
-              </span>{' '}
-
-              from thousands of mentorship sessions
-
-            </div>
-
-          </div>
-
-          {/* STATS */}
-          <div className='flex items-center justify-center gap-x-24 mt-14 text-center'>
-          {/* Stat 1 */}
-          <div className="flex flex-col">
-          <h2 className='text-3xl font-black text-slate-900 tracking-tight leading-none'>
-              {mentorCount}+
-          </h2>
-          <p className='text-slate-500 mt-2 text-sm font-medium'>
-            Mentors
-          </p>
         </div>
 
-  {/* Visual Divider (Optional but adds a human touch) */}
-  <div className="h-8 w-px bg-slate-200 mx-2" />
-
-  {/* Stat 2 */}
-  <div className="flex flex-col">
-    <h2 className='text-3xl font-black text-slate-900 tracking-tight leading-none'>
-      10k+
-    </h2>
-    <p className='text-slate-500 mt-2 text-sm font-medium'>
-      Sessions
-    </p>
-  </div>
-
-  {/* Visual Divider */}
-  <div className="h-8 w-px bg-slate-200 mx-2" />
-
-  {/* Stat 3 */}
-  <div className="flex flex-col">
-    <h2 className='text-3xl font-black text-slate-900 tracking-tight leading-none'>
-      4.9★
-    </h2>
-    <p className='text-slate-500 mt-2 text-sm font-medium'>
-      Ratings
-    </p>
-  </div>
-</div>
-
+        {/* RIGHT CONTENT - Stat Cards */}
+        <div className="lg:col-span-5 space-y-6 lg:flex flex-col items-center lg:items-end hidden">
+          <StatCard value={`${mentorCount || '240'}+`} label="MENTORS" />
+          <StatCard value="18k" label="SESSIONS BOOKED" />
+          <StatCard value="4.92" label="AVG RATING" />
         </div>
-       
+
       </div>
-
     </section>
-  )
+  );
 }
 
-export default Hero
+const StatCard = ({ value, label }) => (
+  <div className="w-90  bg-[#fdf9f3] border border-black/15 rounded-2xl p-5 transition-transform hover:-translate-y-1">
+    <h2 className="text-4xl font-serif text-[#1a1a1a] mb-2">{value}</h2>
+    <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">
+      {label}
+    </p>
+  </div>
+);
+
+export default Hero;

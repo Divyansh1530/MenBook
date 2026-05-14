@@ -1,199 +1,143 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { Star,ArrowUpRight,ShieldCheck,ArrowRight } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { useSearchParams } from 'react-router-dom'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Star, ArrowRight } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 function TopMentors() {
-
-  const [mentors, setMentors] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [searchParams] = useSearchParams()
-  const [search, setSearch] = useState(
-   searchParams.get('search') || ''
-)
+  const [mentors, setMentors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   
-    const [minPrice, setMinPrice] = useState('')
-  
-    const [maxPrice, setMaxPrice] = useState('')
-  
-    const [minRating, setMinRating] = useState('')
-    
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
-
-   setSearch(
-      searchParams.get('search') || ''
-   )
-
-}, [searchParams])
+    setSearch(searchParams.get('search') || '');
+  }, [searchParams]);
 
   useEffect(() => {
-
     const fetchMentors = async () => {
-
       try {
-
-        const response = await axios.get(
-          'http://localhost:8000/api/v1.1/users/mentors',
-          {
-          params:{
-            search,
-            minPrice,
-            maxPrice,
-            minRating
-          }
-        }
-        )
-
-        setMentors(response.data.data)
-
+        const response = await axios.get('http://localhost:8000/api/v1.1/users/mentors', {
+          params: { search }
+        });
+        setMentors(response.data.data);
       } catch (error) {
-
-        console.log(error)
-
+        console.log(error);
       } finally {
-
-        setLoading(false)
+        setLoading(false);
       }
-    }
-
-    fetchMentors()
-
-  }, [search,minPrice,maxPrice,minRating])
+    };
+    fetchMentors();
+  }, [search]);
 
   if (loading) {
-
     return (
-
-      <div className='py-24 text-center text-2xl font-bold text-slate-900'>
-
-        Loading mentors...
-
+      <div className="py-24 text-center font-serif text-2xl text-[#1a1a1a] bg-[#fdfaf3]">
+        Loading community favorites...
       </div>
-    )
+    );
   }
 
+  // Helper to generate initials for the avatar if no image is present
+  const getInitials = (name) => name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+  // Helper for pastel background colors like in image_839840.png
+  const getAvatarBg = (id) => {
+    const colors = ['bg-orange-200', 'bg-green-200', 'bg-blue-200', 'bg-rose-200', 'bg-yellow-200', 'bg-emerald-200'];
+    return colors[id.charCodeAt(id.length - 1) % colors.length];
+  };
+
   return (
-
-    <section className='py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto'>
-
-      {/* HEADING */}
-      <div className='mb-12 text-center'>
-
-        <h2 className='text-4xl font-black text-slate-900 mb-4'>
-
-          Top Rated Mentors
-
-        </h2>
-
-        <p className='text-slate-600 max-w-2xl mx-auto text-lg'>
-
-          Learn from experienced professionals across
-          software engineering, design, business,
-          content creation and career growth.
-
-        </p>
-
-      </div>
-
-      {/* GRID */}
-      <div>
-         <input
-          type="text"
-          placeholder="Search expertise..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Min Price"
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Max Price"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-        />
-        <select
-          value={minRating}
-          onChange={(e) => setMinRating(e.target.value)}
-        >
-          <option value="">All Ratings</option>
-          <option value="4">4★ & above</option>
-          <option value="4.5">4.5★ & above</option>
-        </select>
-      </div>
-      <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
-        {mentors.map((mentor) => (
-          <div
-            key={mentor._id}
-            onClick={() => navigate(`/mentors/${mentor._id}`)}
-            className='group bg-white rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col sm:flex-row'
+    <section className="bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div>
+            <p className="text-[11px] font-normal tracking-[0.2em] text-black/80 uppercase mb-4">
+              02 — TOP MENTORS
+            </p>
+            <h2 className="hero-heading font-light text-3xl md:text-5xl text-[#1a1a1a] leading-tighter tracking-tighter max-w-md transform scale-y-[1.2] origin-left">
+              People our community keeps coming back to.
+            </h2>
+          </div>
+          <button 
+            onClick={() => navigate('/mentors')}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-black transition-colors"
           >
-            {/* LEFT: IMAGE (Rectangle Aspect) */}
-            <div className='relative w-full sm:w-48 lg:w-56 h-64 sm:h-auto overflow-hidden'>
-              <img
-                src={mentor.avatar || 'https://via.placeholder.com/400'}
-                alt={mentor.name}
-                className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110'
-              />
-              <div className='absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 text-[11px] font-bold text-slate-900'>
-                <Star className='w-3 h-3 fill-amber-400 text-amber-400' />
-                {mentor.mentorProfile?.avgRating || 5.0}
-              </div>
-            </div>
+            See all <ArrowRight size={16} />
+          </button>
+        </div>
 
-            {/* RIGHT: CONTENT (Structured Typography) */}
-            <div className='flex-1 p-6 flex flex-col justify-between'>
+        {/* Mentor Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {mentors.map((mentor) => (
+            <div
+              key={mentor._id}
+              className="bg-white/40 border border-black/20 rounded-4xl p-8 flex flex-col justify-between transition-all duration-300 shadow-xl hover:bg-white hover:shadow-2xl hover:shadow-black/5"
+            >
               <div>
-                <div className='flex items-start justify-between mb-1'>
-                  <h3 className='text-xl font-bold text-slate-900 flex items-center gap-2'>
-                    {mentor.name}
-                    <ShieldCheck className='w-4 h-4 text-indigo-500' />
-                  </h3>
-                  <div className='text-right'>
-                    <span className='block text-[10px] uppercase font-bold text-slate-400 tracking-widest'>Hourly Rate</span>
-                    <span className='text-lg font-black text-indigo-600'>
-                      ₹{mentor.mentorProfile?.pricing || 499}
-                    </span>
+                {/* Header: Avatar, Name, and Rating */}
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex gap-4 items-center">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-serif text-lg text-black/70 ${getAvatarBg(mentor._id)}`}>
+                      {getInitials(mentor.name)}
+                    </div>
+                    <div>
+                      <h3 className="hero-heading font-serif text-xl text-[#1a1a1a] leading-tight tracking-tight transform scale-y-[1.2] origin-left">
+                        {mentor.name}
+                      </h3>
+                      <p className="text-gray-500 text-sm mt-1">
+                        {mentor.mentorProfile?.title || "Senior Professional"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm font-bold text-[#1a1a1a]">
+                    <Star size={14} className="fill-red-500 text-red-500" />
+                    {mentor.mentorProfile?.avgRating || "5.0"}
                   </div>
                 </div>
 
-                {/* Expertise Badges */}
-                <div className='flex flex-wrap gap-2 mb-4'>
-                  {mentor.mentorProfile?.expertise?.slice(0, 3).map((exp, i) => (
-                    <span key={i} className='text-[10px] font-bold px-2 py-1 bg-slate-50 text-slate-500 rounded-md border border-slate-100 uppercase tracking-tighter'>
+                {/* Bio */}
+                <p className="text-gray-600 text-[15px] leading-relaxed mb-4 line-clamp-3">
+                  {mentor.mentorProfile?.bio || "Expert guidance at the intersection of clarity and professional craft."}
+                </p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {mentor.mentorProfile?.expertise?.slice(0, 2).map((exp, i) => (
+                    <span key={i} className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
                       {exp}
                     </span>
                   ))}
                 </div>
-
-                {/* Bio - Controlled line clamp for clean UI */}
-                <p className='text-slate-500 text-sm leading-relaxed line-clamp-3 mb-6'>
-                  {mentor.mentorProfile?.bio || 'An industry veteran dedicated to helping mentees bridge the gap between education and high-level professional execution.'}
-                </p>
               </div>
 
-              {/* Action Area */}
-              <div className='flex items-center justify-between pt-4 border-t border-slate-50'>
-                <span className='text-xs font-semibold text-slate-400'>
-                  Available this week
-                </span>
-                <div className='flex items-center gap-2 text-sm font-bold text-indigo-600 group-hover:translate-x-1 transition-transform'>
-                  View Profile <ArrowRight className='w-4 h-4' />
+              {/* Footer: Pricing and CTA */}
+              <div className="pt-6 border-t border-black/15 flex items-center justify-between">
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-serif text-2xl text-[#1a1a1a]">₹{mentor.mentorProfile?.pricing || '499'}</span>
+                    <span className="text-xs text-gray-400">/session</span>
+                  </div>
+                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1">
+                    {Math.floor(Math.random() * 500) + 100} sessions
+                  </p>
                 </div>
+                <button
+                  onClick={() => navigate(`/mentors/${mentor._id}`)}
+                  className="bg-[#120f0a] text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-black transition-all active:scale-95"
+                >
+                  Book a slot
+                </button>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default TopMentors
+export default TopMentors;

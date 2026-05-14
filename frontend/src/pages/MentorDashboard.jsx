@@ -1,270 +1,156 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Calendar, CheckSquare, Users, TrendingUp, ArrowRight, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function MentorDashboard() {
-
-  const [bookings, setBookings] = useState([])
-
-  const [loading, setLoading] = useState(true)
-
-  /*
-      FETCH BOOKINGS
-  */
-
-  const fetchBookings = async () => {
-
-    try {
-
-      const response = await axios.get(
-        'http://localhost:8000/api/v1.1/booking/mentor-bookings',
-        {
-          withCredentials: true
-        }
-      )
-
-      setBookings(response.data.data)
-
-    } catch (error) {
-
-      console.log(error)
-
-    } finally {
-
-      setLoading(false)
-    }
-  }
+  const navigate = useNavigate();
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) setUser(JSON.parse(storedUser));
+    fetchBookings();
+  }, []);
 
-    fetchBookings()
-
-  }, [])
-
-  /*
-      MARK COMPLETED
-  */
+  const fetchBookings = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/v1.1/booking/mentor-bookings', {
+        withCredentials: true
+      });
+      setBookings(response.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMarkCompleted = async (bookingId) => {
-
     try {
-
-      const response = await axios.patch(
-        `http://localhost:8000/api/v1.1/booking/${bookingId}/complete`,
-        {},
-        {
-          withCredentials: true
-        }
-      )
-
-      console.log(response.data)
-
-      alert('Booking marked as completed')
-
-      fetchBookings()
-
+      await axios.patch(`http://localhost:8000/api/v1.1/booking/${bookingId}/complete`, {}, {
+        withCredentials: true
+      });
+      alert('Booking marked as completed');
+      fetchBookings();
     } catch (error) {
-
-      console.log(error)
-
-      alert(
-        error.response?.data?.message ||
-        'Failed to update booking'
-      )
+      alert(error.response?.data?.message || 'Failed to update booking');
     }
-  }
+  };
 
-  /*
-      FORMAT DATE
-  */
+  const formatDate = (date) => new Date(date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 
-  const formatDate = (date) => {
+  if (loading) return (
+    <div className="min-h-screen bg-[#fdfaf3] flex items-center justify-center font-serif text-2xl text-gray-400">
+      Opening your desk...
+    </div>
+  );
 
-    return new Date(date).toLocaleString([], {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    })
-  }
-
-  /*
-      STATUS COLOR
-  */
-
-  const getStatusColor = (status) => {
-
-    switch (status) {
-
-      case 'completed':
-        return 'bg-green-100 text-green-700'
-
-      case 'confirmed':
-        return 'bg-blue-100 text-blue-700'
-
-      case 'cancelled':
-        return 'bg-red-100 text-red-700'
-
-      default:
-        return 'bg-yellow-100 text-yellow-700'
-    }
-  }
-
-  if (loading) {
-
-    return (
-      <div className='min-h-screen flex items-center justify-center text-3xl font-bold'>
-        Loading Dashboard...
-      </div>
-    )
-  }
+  // Statistics Calculation
+  const upcomingCount = bookings.filter(b => b.status === 'confirmed').length;
+  const completedCount = bookings.filter(b => b.status === 'completed').length;
+  const learnerCount = new Set(bookings.map(b => b.userId?._id)).size;
+  const totalEarnings = bookings.reduce((acc, curr) => acc + (curr.status === 'completed' ? curr.amount : 0), 0);
 
   return (
-
-    <section className='min-h-screen bg-slate-50 py-24 px-6'>
-
-      <div className='max-w-7xl mx-auto'>
-
-        {/* HEADER */}
-        <div className='mb-12'>
-
-          <h1 className='text-5xl font-black text-slate-900 mb-4'>
-            Mentor Dashboard
-          </h1>
-
-          <p className='text-slate-600 text-lg'>
-            Manage your booked mentoring sessions.
-          </p>
-
+    <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+          <div>
+            <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">MENTOR DESK</p>
+            <h1 className="font-serif text-7xl text-[#1a1a1a] mb-4 tracking-tight lowercase">
+              Hi, {user?.name.split(' ')[0]}.
+            </h1>
+            <p className="text-gray-500 text-lg">Your bookings and earnings at a glance.</p>
+          </div>
+          <button 
+            onClick={() => navigate('/mentor-availability')}
+            className="bg-[#120f0a] text-white px-8 py-4 rounded-full font-medium flex items-center gap-3 hover:bg-black transition-all group"
+          >
+            Manage availability <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
 
-        {/* EMPTY STATE */}
-        {
-          bookings.length === 0 && (
+        {/* SNAPSHOT STAT CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+          <StatCard icon={<Calendar size={16} />} label="UPCOMING" value={upcomingCount} />
+          <StatCard icon={<CheckSquare size={16} />} label="COMPLETED" value={completedCount} />
+          <StatCard icon={<Users size={16} />} label="LEARNERS" value={learnerCount} />
+          <StatCard icon={<TrendingUp size={16} />} label="EARNINGS" value={`₹${totalEarnings}`} />
+        </div>
 
-            <div className='bg-white border border-slate-200 rounded-3xl p-16 text-center shadow-sm'>
+        {/* BOOKINGS LIST */}
+        <div className="space-y-8">
+          <div className="flex justify-between items-end border-b border-black/5 pb-4">
+            <h2 className="font-serif text-4xl text-[#1a1a1a]">Upcoming sessions</h2>
+            <button className="text-sm font-medium text-gray-400 hover:text-black">View all &rarr;</button>
+          </div>
 
-              <h2 className='text-3xl font-bold text-slate-900 mb-4'>
-                No Bookings Yet
-              </h2>
-
-              <p className='text-slate-500 text-lg'>
-                Your upcoming sessions will appear here.
-              </p>
-
+          {bookings.length === 0 ? (
+            <div className="border-2 border-dashed border-black/5 rounded-4xl p-20 text-center">
+              <p className="text-gray-500">No bookings yet. <button onClick={() => navigate('/mentor-availability')} className="text-red-500 font-medium hover:underline">Open more slots</button></p>
             </div>
-          )
-        }
-
-        {/* BOOKINGS */}
-        <div className='grid gap-8'>
-
-          {
-            bookings.map((booking) => (
-
-              <div
-                key={booking._id}
-                className='bg-white border border-slate-200 rounded-3xl p-8 shadow-sm'
-              >
-
-                <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8'>
-
-                  {/* LEFT */}
-                  <div className='flex items-center gap-5'>
-
-                    <img
-                      src={
-                        booking.userId?.avatar ||
-                        'https://via.placeholder.com/100'
-                      }
-                      alt='user'
-                      className='w-20 h-20 rounded-full object-cover border border-slate-200'
-                    />
-
-                    <div>
-
-                      <h2 className='text-2xl font-bold text-slate-900 mb-2'>
-
-                        {booking.userId?.name}
-
-                      </h2>
-
-                      <p className='text-slate-500 mb-1'>
-
-                        {booking.userId?.email}
-
-                      </p>
-
-                      <p className='text-slate-600 font-medium'>
-
-                        {formatDate(booking.startTime)}
-
-                      </p>
-
+          ) : (
+            <div className="grid gap-6">
+              {bookings.map((booking) => (
+                <div key={booking._id} className="bg-white/40 border border-black/5 rounded-4xl p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/5">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div className="flex items-center gap-6">
+                      <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={booking.userId?.avatar || 'https://via.placeholder.com/100'} 
+                          className="w-full h-full object-cover" 
+                          alt="learner" 
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-serif text-2xl text-[#1a1a1a]">{booking.userId?.name}</h3>
+                        <p className="text-gray-500 text-sm">{formatDate(booking.startTime)}</p>
+                      </div>
                     </div>
-
-                  </div>
-
-                  {/* RIGHT */}
-                  <div className='flex flex-col items-start lg:items-end gap-4'>
-
-                    {/* STATUS */}
-                    <div
-                      className={`px-4 py-2 rounded-xl font-semibold capitalize ${getStatusColor(booking.status)}`}
-                    >
-
-                      {booking.status}
-
-                    </div>
-
-                    {/* PAYMENT */}
-                    <div className='text-slate-600 font-semibold'>
-
-                      Payment:
-                      {' '}
-                      <span className='capitalize'>
-
-                        {booking.paymentStatus}
-
-                      </span>
-
-                    </div>
-
-                    {/* PRICE */}
-                    <div className='text-3xl font-black text-slate-900'>
-
-                      ₹{booking.amount}
-
-                    </div>
-
-                    {/* COMPLETE BUTTON */}
-                    {
-                      booking.status === 'confirmed' && (
-
-                        <button
-                          onClick={() =>
-                            handleMarkCompleted(booking._id)
-                          }
-                          className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold transition'
+                    
+                    <div className="flex items-center gap-8">
+                      <div className="text-right">
+                        <span className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                          booking.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'
+                        }`}>
+                          {booking.status}
+                        </span>
+                        <p className="font-serif text-xl mt-1 text-[#1a1a1a]">₹{booking.amount}</p>
+                      </div>
+                      
+                      {booking.status === 'confirmed' && (
+                        <button 
+                          onClick={() => handleMarkCompleted(booking._id)}
+                          className="bg-[#120f0a] text-white px-6 py-3 rounded-2xl text-sm font-medium hover:bg-black transition-all"
                         >
-
                           Mark Completed
-
                         </button>
-                      )
-                    }
-
+                      )}
+                    </div>
                   </div>
-
                 </div>
-
-              </div>
-            ))
-          }
-
+              ))}
+            </div>
+          )}
         </div>
-
       </div>
-
     </section>
-  )
+  );
 }
 
-export default MentorDashboard
+const StatCard = ({ icon, label, value }) => (
+  <div className="bg-white/40 border border-black/5 rounded-3xl p-8 flex flex-col items-start transition-all hover:bg-white hover:shadow-lg hover:shadow-black/5">
+    <div className="flex items-center gap-2 text-gray-400 mb-6">
+      {icon}
+      <span className="text-[10px] font-bold tracking-[0.2em] uppercase">{label}</span>
+    </div>
+    <span className="font-serif text-4xl text-[#1a1a1a]">{value}</span>
+  </div>
+);
+
+export default MentorDashboard;

@@ -1,88 +1,47 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
+import { Plus, Clock, Calendar as CalendarIcon, Trash2 } from 'lucide-react'
 
 function MentorAvailability() {
-
   const [availability, setAvailability] = useState([])
-
   const [formData, setFormData] = useState({
-    dayOfWeek: 0,
-    startTime: '',
-    endTime: '',
+    dayOfWeek: 1,
+    startTime: '09:00',
+    endTime: '12:00',
     slotDuration: 30,
-    bufferTime: 0
+    bufferTime: 10
   })
 
   const days = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday'
+    'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
   ]
 
-  /*
-      FETCH AVAILABILITY
-  */
-
   const fetchAvailability = async () => {
-
     try {
-
-      const response = await axios.get(
-        'http://localhost:8000/api/v1.1/availability/mentor',
-        {
-          withCredentials: true
-        }
-      )
-
+      const response = await axios.get('http://localhost:8000/api/v1.1/availability/mentor', {
+        withCredentials: true
+      })
       setAvailability(response.data.data)
-
     } catch (error) {
-
       console.log(error)
     }
   }
 
   useEffect(() => {
-
     fetchAvailability()
-
   }, [])
 
-  /*
-      HANDLE INPUT
-  */
-
   const handleChange = (e) => {
-
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  /*
-      TIME TO MINUTES
-  */
-
   const convertTimeToMinutes = (time) => {
-
     const [hours, minutes] = time.split(':')
-
     return Number(hours) * 60 + Number(minutes)
   }
 
-  /*
-      CREATE AVAILABILITY
-  */
-
   const handleCreateAvailability = async () => {
-
     try {
-
       const payload = {
         dayOfWeek: Number(formData.dayOfWeek),
         startTime: convertTimeToMinutes(formData.startTime),
@@ -90,263 +49,175 @@ function MentorAvailability() {
         slotDuration: Number(formData.slotDuration),
         bufferTime: Number(formData.bufferTime)
       }
-
-      const response = await axios.post(
-        'http://localhost:8000/api/v1.1/availability/create',
-        payload,
-        {
-          withCredentials: true
-        }
-      )
-
-      console.log(response.data)
-
+      await axios.post('http://localhost:8000/api/v1.1/availability/create', payload, {
+        withCredentials: true
+      })
       alert('Availability created successfully')
-
       fetchAvailability()
-
     } catch (error) {
-
-      console.log(error)
-
-      alert(
-        error.response?.data?.message ||
-        'Failed to create availability'
-      )
+      alert(error.response?.data?.message || 'Failed to create availability')
     }
   }
 
-  /*
-      FORMAT TIME
-  */
-
   const formatMinutes = (minutes) => {
-
     const hours = Math.floor(minutes / 60)
-
     const mins = minutes % 60
-
     const period = hours >= 12 ? 'PM' : 'AM'
-
-    const formattedHours =
-      hours % 12 || 12
-
-    return `${formattedHours}:${mins
-      .toString()
-      .padStart(2, '0')} ${period}`
+    const formattedHours = hours % 12 || 12
+    return `${formattedHours}:${mins.toString().padStart(2, '0')} ${period}`
   }
 
+  // Calculate generated slots for the preview badge in image_77b73a.png
+  const startMins = convertTimeToMinutes(formData.startTime)
+  const endMins = convertTimeToMinutes(formData.endTime)
+  const totalDuration = endMins - startMins
+  const slotsCount = totalDuration > 0 ? Math.floor(totalDuration / (Number(formData.slotDuration) + Number(formData.bufferTime))) : 0
+
   return (
-
-    <section className='min-h-screen bg-slate-50 py-24 px-6'>
-
-      <div className='max-w-5xl mx-auto'>
-
-        {/* HEADING */}
-        <div className='mb-12'>
-
-          <h1 className='text-5xl font-black text-slate-900 mb-4'>
-
-            Mentor Availability
-
-          </h1>
-
-          <p className='text-slate-600 text-lg'>
-
-            Create your recurring weekly schedule.
-
+    <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section */}
+        <header className="mb-16">
+          <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">
+            CALENDAR
           </p>
-
-        </div>
-
-        {/* FORM */}
-        <div className='bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-12'>
-
-          <div className='grid md:grid-cols-2 gap-6'>
-
-            {/* DAY */}
-            <div>
-
-              <label className='block mb-2 font-semibold'>
-
-                Day
-
-              </label>
-
-              <select
-                name='dayOfWeek'
-                value={formData.dayOfWeek}
-                onChange={handleChange}
-                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
-              >
-
-                {
-                  days.map((day, index) => (
-
-                    <option
-                      key={index}
-                      value={index}
-                    >
-
-                      {day}
-
-                    </option>
-
-                  ))
-                }
-
-              </select>
-
-            </div>
-
-            {/* SLOT DURATION */}
-            <div>
-
-              <label className='block mb-2 font-semibold'>
-
-                Slot Duration (minutes)
-
-              </label>
-
-              <input
-                type='number'
-                name='slotDuration'
-                value={formData.slotDuration}
-                onChange={handleChange}
-                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
-              />
-
-            </div>
-
-            {/* START TIME */}
-            <div>
-
-              <label className='block mb-2 font-semibold'>
-
-                Start Time
-
-              </label>
-
-              <input
-                type='time'
-                name='startTime'
-                value={formData.startTime}
-                onChange={handleChange}
-                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
-              />
-
-            </div>
-
-            {/* END TIME */}
-            <div>
-
-              <label className='block mb-2 font-semibold'>
-
-                End Time
-
-              </label>
-
-              <input
-                type='time'
-                name='endTime'
-                value={formData.endTime}
-                onChange={handleChange}
-                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
-              />
-
-            </div>
-
-            {/* BUFFER */}
-            <div>
-
-              <label className='block mb-2 font-semibold'>
-
-                Buffer Time (minutes)
-
-              </label>
-
-              <input
-                type='number'
-                name='bufferTime'
-                value={formData.bufferTime}
-                onChange={handleChange}
-                className='w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500'
-              />
-
-            </div>
-
-          </div>
-
-          {/* BUTTON */}
-          <button
-            onClick={handleCreateAvailability}
-            className='mt-8 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-semibold transition'
-          >
-
-            Create Availability
-
-          </button>
-
-        </div>
-
-        {/* AVAILABILITY LIST */}
-        <div className='space-y-5'>
-
-          {
-            availability.map((item) => (
-
-              <div
-                key={item._id}
-                className='bg-white border border-slate-200 rounded-2xl p-6 shadow-sm'
-              >
-
-                <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
-
-                  <div>
-
-                    <h2 className='text-2xl font-bold text-slate-900'>
-
-                      {days[item.dayOfWeek]}
-
-                    </h2>
-
-                    <p className='text-slate-600 mt-2'>
-
-                      {formatMinutes(item.startTime)}
-                      {' - '}
-                      {formatMinutes(item.endTime)}
-
-                    </p>
-
-                  </div>
-
-                  <div className='flex flex-wrap gap-3'>
-
-                    <div className='bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-semibold'>
-
-                      {item.slotDuration} mins/session
-
-                    </div>
-
-                    <div className='bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold'>
-
-                      {item.bufferTime} mins buffer
-
-                    </div>
-
-                  </div>
-
-                </div>
-
+          <h1 className="font-serif text-6xl text-[#1a1a1a] mb-6 tracking-tight">
+            Your availability
+          </h1>
+          <p className="text-gray-500 max-w-xl text-lg font-sans leading-relaxed">
+            Define a window — we'll slice it into bookable slots with the buffer you need between sessions.
+          </p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+          
+          {/* Left: New Window Form (Mimicking image_77b73a.png) */}
+          <div className="lg:col-span-5 bg-white/40 border border-black/5 rounded-[40px] p-10 shadow-sm">
+            <h2 className="font-serif text-3xl text-[#1a1a1a] mb-8">New window</h2>
+            
+            <div className="space-y-6">
+              {/* Day Selection */}
+              <div>
+                <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">DAY</label>
+                <select
+                  name="dayOfWeek"
+                  value={formData.dayOfWeek}
+                  onChange={handleChange}
+                  className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                >
+                  {days.map((day, index) => (
+                    <option key={index} value={index}>{day}</option>
+                  ))}
+                </select>
               </div>
 
-            ))
-          }
+              {/* Time Inputs Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">START TIME</label>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      name="startTime"
+                      value={formData.startTime}
+                      onChange={handleChange}
+                      className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">END TIME</label>
+                  <input
+                    type="time"
+                    name="endTime"
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                  />
+                </div>
+              </div>
+
+              {/* Duration Inputs Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">SLOT DURATION (MIN)</label>
+                  <input
+                    type="number"
+                    name="slotDuration"
+                    value={formData.slotDuration}
+                    onChange={handleChange}
+                    className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">BUFFER (MIN)</label>
+                  <input
+                    type="number"
+                    name="bufferTime"
+                    value={formData.bufferTime}
+                    onChange={handleChange}
+                    className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                  />
+                </div>
+              </div>
+
+              {/* Slot Preview Badge */}
+              <div className="bg-gray-100/80 rounded-2xl p-4 text-xs text-gray-500 font-sans">
+                Will generate <span className="font-bold text-black">{slotsCount}</span> slots
+              </div>
+
+              <button
+                onClick={handleCreateAvailability}
+                className="w-full bg-[#120f0a] text-white py-4 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-black transition-all active:scale-95"
+              >
+                <Plus size={18} />
+                Create slots
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Existing Windows */}
+          <div className="lg:col-span-7">
+            <h2 className="font-serif text-3xl text-[#1a1a1a] mb-8">Your windows</h2>
+            
+            {availability.length === 0 ? (
+              <div className="border-2 border-dashed border-black/5 rounded-[40px] p-20 text-center">
+                <p className="text-gray-500 font-sans">
+                  No windows yet. Create your first one &rarr;
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {availability.map((item) => (
+                  <div
+                    key={item._id}
+                    className="bg-white/40 border border-black/5 rounded-4xl p-8 flex items-center justify-between transition-all hover:bg-white hover:shadow-lg hover:shadow-black/5"
+                  >
+                    <div>
+                      <h3 className="font-serif text-2xl text-[#1a1a1a] mb-2">
+                        {days[item.dayOfWeek]}
+                      </h3>
+                      <div className="flex items-center gap-4 text-gray-500 text-sm">
+                        <span className="flex items-center gap-1.5">
+                          <Clock size={14} />
+                          {formatMinutes(item.startTime)} - {formatMinutes(item.endTime)}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                        <span>{item.slotDuration}m slots</span>
+                      </div>
+                    </div>
+                    <button className="text-gray-300 hover:text-red-500 transition-colors p-2">
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
         </div>
-
       </div>
-
     </section>
   )
 }

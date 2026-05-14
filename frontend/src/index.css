@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
+
 body {
   font-family: 'Poppins', sans-serif;
 }
 
 .hero-heading {
-  font-family: 'Clash Display', sans-serif;
+  font-family: 'EB Garamond', serif;
 }
+
+
+
+
+
