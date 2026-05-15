@@ -75,14 +75,14 @@ function MentorAvailability() {
 
   return (
     <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-35">
         
         {/* Header Section */}
         <header className="mb-16">
-          <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">
+          <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-4">
             CALENDAR
           </p>
-          <h1 className="font-serif text-6xl text-[#1a1a1a] mb-6 tracking-tight">
+          <h1 className="hero-heading font-serif text-6xl text-[#1a1a1a] mb-6 tracking-tight transform scale-y-[1.2] origin-left">
             Your availability
           </h1>
           <p className="text-gray-500 max-w-xl text-lg font-sans leading-relaxed">
@@ -94,17 +94,17 @@ function MentorAvailability() {
           
           {/* Left: New Window Form (Mimicking image_77b73a.png) */}
           <div className="lg:col-span-5 bg-white/40 border border-black/5 rounded-[40px] p-10 shadow-sm">
-            <h2 className="font-serif text-3xl text-[#1a1a1a] mb-8">New window</h2>
+            <h2 className="hero-heading transform scale-y-[1.2] origin-left font-serif text-2xl text-[#1a1a1a] mb-8 tracking-tighter">New window</h2>
             
             <div className="space-y-6">
               {/* Day Selection */}
               <div>
-                <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">DAY</label>
+                <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">DAY</label>
                 <select
                   name="dayOfWeek"
                   value={formData.dayOfWeek}
                   onChange={handleChange}
-                  className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                  className="w-full bg-[#fbf6ee] border border-black/10 rounded-2xl px-5 py-3 outline-none focus:border-black/30 transition-all font-sans"
                 >
                   {days.map((day, index) => (
                     <option key={index} value={index}>{day}</option>
@@ -115,25 +115,25 @@ function MentorAvailability() {
               {/* Time Inputs Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">START TIME</label>
+                  <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">START TIME</label>
                   <div className="relative">
                     <input
                       type="time"
                       name="startTime"
                       value={formData.startTime}
                       onChange={handleChange}
-                      className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                      className="w-full bg-[#fbf6ee] border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">END TIME</label>
+                  <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">END TIME</label>
                   <input
                     type="time"
                     name="endTime"
                     value={formData.endTime}
                     onChange={handleChange}
-                    className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                    className="w-full bg-[#fbf6ee] border border-black/10 rounded-2xl px-5 py-4 #outline-none focus:border-black/30 transition-all font-sans"
                   />
                 </div>
               </div>
@@ -141,29 +141,29 @@ function MentorAvailability() {
               {/* Duration Inputs Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">SLOT DURATION (MIN)</label>
+                  <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">SLOT DURATION (MIN)</label>
                   <input
                     type="number"
                     name="slotDuration"
                     value={formData.slotDuration}
                     onChange={handleChange}
-                    className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                    className="w-full bg-[#fbf6ee] border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold tracking-[0.15em] text-gray-400 uppercase mb-2">BUFFER (MIN)</label>
+                  <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">BUFFER (MIN)</label>
                   <input
                     type="number"
                     name="bufferTime"
                     value={formData.bufferTime}
                     onChange={handleChange}
-                    className="w-full bg-white/60 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                    className="w-full bg-[#fbf6ee] border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
                   />
                 </div>
               </div>
 
               {/* Slot Preview Badge */}
-              <div className="bg-gray-100/80 rounded-2xl p-4 text-xs text-gray-500 font-sans">
+              <div className="bg-[#eee7dd] rounded-2xl p-4 text-xs text-gray-500 font-sans">
                 Will generate <span className="font-bold text-black">{slotsCount}</span> slots
               </div>
 
@@ -179,7 +179,7 @@ function MentorAvailability() {
 
           {/* Right: Existing Windows */}
           <div className="lg:col-span-7">
-            <h2 className="font-serif text-3xl text-[#1a1a1a] mb-8">Your windows</h2>
+            <h2 className="hero-heading font-serif text-2xl text-[#1a1a1a] mb-8 tracking-tighter transform scale-y-[1.2] origin-left">Your windows</h2>
             
             {availability.length === 0 ? (
               <div className="border-2 border-dashed border-black/5 rounded-[40px] p-20 text-center">

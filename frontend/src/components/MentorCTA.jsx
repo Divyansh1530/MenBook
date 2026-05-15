@@ -37,7 +37,7 @@ function MentorCTA() {
 
           {/* Action Button */}
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/signup')}
             className="relative z-10 bg-[#fdfaf3] text-[#1a110a] px-7 py-3 rounded-full font-medium text-sm hover:bg-white transition-all active:scale-95"
           >
             Apply to be a mentor

@@ -37,6 +37,15 @@ const createBooking = asyncHandler(async(req,res) => {
     const parsedStartTime = new Date(startTime)
     const parsedEndTime = new Date(endTime)
 
+    const now = new Date()
+
+        if (parsedStartTime <= now) {
+            throw new ApiError(
+                400,
+                "Cannot book past time slots"
+            )
+        }
+
     if (isNaN(parsedStartTime.getTime()) || isNaN(parsedEndTime.getTime())) {
         throw new ApiError(400,"Invalid Date Format")
     }

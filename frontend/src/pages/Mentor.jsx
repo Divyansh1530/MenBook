@@ -1,547 +1,241 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { useParams } from 'react-router-dom'
-import { Star, CalendarDays } from 'lucide-react'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Star, X, ChevronLeft, ChevronRight, CalendarDays, ArrowLeft } from 'lucide-react';
 
 function Mentor() {
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const { id } = useParams()
+  const [mentor, setMentor] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const [mentor, setMentor] = useState(null)
-
-  const [reviews, setReviews] = useState([])
-
-  const [selectedDate, setSelectedDate] = useState('')
-
-  const [slots, setSlots] = useState([])
-
-  const [loading, setLoading] = useState(true)
-
-  
-  /*
-      FETCH MENTOR
-  */
-
-  const fetchMentor = async () => {
-
-    try {
-
-      const response = await axios.get(
-        `http://localhost:8000/api/v1.1/users/mentors/${id}`
-        
-      )
-
-      setMentor(response.data.data)
-
-    } catch (error) {
-
-      console.log(error)
-    }
-  }
-
-  /*
-      FETCH REVIEWS
-  */
-
-  const fetchReviews = async () => {
-
-    try {
-
-      const response = await axios.get(
-        `http://localhost:8000/api/v1.1/review/mentors/${id}`
-      )
-
-      setReviews(response.data.data)
-
-    } catch (error) {
-
-      console.log(error)
-    }
-  }
-
-  /*
-      FETCH AVAILABLE SLOTS
-  */
-
-  const fetchSlots = async (date) => {
-
-    try {
-
-      const response = await axios.get(
-        `http://localhost:8000/api/v1.1/availability/slots/${id}?date=${date}`,
-
-      {
-            withCredentials:true
-      }
-
-      ) 
-      
-      setSlots(response.data.data)
-
-    } catch (error) {
-
-      console.log(error)
-    }
-  }
+  // Modal and Slot states
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [slots, setSlots] = useState([]);
+  const [dateRange, setDateRange] = useState([]);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) setUser(JSON.parse(storedUser));
 
-    const loadData = async () => {
-
-      setLoading(true)
-
-      await Promise.all([
-        fetchMentor(),
-        fetchReviews()
-      ])
-
-      setLoading(false)
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      dates.push(d);
     }
+    setDateRange(dates);
+  }, []);
 
-    loadData()
+  const fetchMentor = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/v1.1/users/mentors/${id}`);
+      setMentor(response.data.data);
+    } catch (error) { console.log(error); }
+  };
 
-  }, [id])
+  const fetchReviews = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/v1.1/review/mentors/${id}`);
+      setReviews(response.data.data);
+    } catch (error) { console.log(error); }
+  };
 
-  /*
-      HANDLE DATE CHANGE
-  */
+  const fetchSlots = async (date) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/v1.1/availability/slots/${id}?date=${date}`,
+        { withCredentials: true }
+      );
+       const currentTime = new Date()
 
-  const handleDateChange = async (e) => {
+    const filteredSlots =
+      response.data.data.filter((slot) => {
 
-    const date = e.target.value
+        return (
+          new Date(slot.startTimeISO)
+          > currentTime
+        )
+      })
+      setSlots(filteredSlots);
+    } catch (error) 
+    { 
+      console.log(error)
+   }
+  };
 
-    setSelectedDate(date)
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchMentor(), fetchReviews()]);
+      setLoading(false);
+    };
+    loadData();
+  }, [id]);
 
-    await fetchSlots(date)
-  }
+  const handleDateSelect = (date) => {
+    const formatted = date.toISOString().split('T')[0];
+    setSelectedDate(formatted);
+    setSelectedSlot(null);
+    fetchSlots(formatted);
+  };
 
-  /*
-      BOOK SESSION
-  */
-
-  const handleBookSession = async (slot) => {
+  const handleBookSession = async () => {
+    if (!user) { navigate('/login'); return; }
+    if (!selectedSlot) return alert("Please select a time slot");
 
     try {
-
-      /*
-          CREATE BOOKING
-      */
-
       const bookingResponse = await axios.post(
         'http://localhost:8000/api/v1.1/booking/create',
-        {
-          mentorId:id,
-          startTime: slot.startTimeISO,
-          endTime: slot.endTimeISO
-        },
-        {
-          withCredentials: true
-        }
-      )
-      
+        { mentorId: id, startTime: selectedSlot.startTimeISO, endTime: selectedSlot.endTimeISO },
+        { withCredentials: true }
+      );
 
-      const booking =
-        bookingResponse.data.data
-
-      /*
-          CREATE ORDER
-      */
-
-      const paymentResponse =
-        await axios.post(
-          'http://localhost:8000/api/v1.1/payment/create-order',
-          {
-            bookingId: booking._id
-          },
-          {
-            withCredentials: true
-          }
-        )
-
-      const {
-        order
-      } = paymentResponse.data.data
-
-      /*
-          OPEN RAZORPAY
-      */
+      const { order } = (await axios.post(
+        'http://localhost:8000/api/v1.1/payment/create-order',
+        { bookingId: bookingResponse.data.data._id },
+        { withCredentials: true }
+      )).data.data;
 
       const options = {
-
-        key:
-          import.meta.env.VITE_RAZORPAY_KEY_ID,
-
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: order.amount,
-
         currency: order.currency,
-
         name: 'MenBook',
-
-        description: 'Mentorship Session',
-
         order_id: order.id,
-
-        handler: async function (response) {
-
-          try {
-
-            await axios.post(
-              'http://localhost:8000/api/v1.1/payment/verify-payment',
-              {
-                razorpay_order_id:
-                  response.razorpay_order_id,
-
-                razorpay_payment_id:
-                  response.razorpay_payment_id,
-
-                razorpay_signature:
-                  response.razorpay_signature
-              },
-              {
-                withCredentials: true
-              }
-            )
-
-            alert(
-              'Payment successful'
-            )
-            await fetchSlots(selectedDate)
-
-          } catch (error) {
-
-            console.log(error)
-
-            alert(
-              'Payment verification failed'
-            )
-          }
+        handler: async function (res) {
+          await axios.post('http://localhost:8000/api/v1.1/payment/verify-payment', {
+            razorpay_order_id: res.razorpay_order_id,
+            razorpay_payment_id: res.razorpay_payment_id,
+            razorpay_signature: res.razorpay_signature
+          }, { withCredentials: true });
+          alert('Payment successful');
+          setShowBookingModal(false);
         },
+        theme: { color: '#e94e36' }
+      };
+      new window.Razorpay(options).open();
+    } catch (error) { alert('Booking failed'); }
+  };
 
-        theme: {
-          color: '#4f46e5'
-        }
-      }
-
-      const razor =
-        new window.Razorpay(options)
-
-      razor.open()
-
-    } catch (error) {
-
-      console.log(error)
-
-      alert(
-        error.response?.data?.message ||
-        'Booking failed'
-      )
-    }
-  }
-
-  if (loading) {
-
-    return (
-      <div className='min-h-screen flex items-center justify-center text-3xl font-bold'>
-        Loading Mentor...
-      </div>
-    )
-  }
-
-  if (!mentor) {
-
-    return (
-      <div className='min-h-screen flex items-center justify-center text-3xl font-bold'>
-        Mentor not found
-      </div>
-    )
-  }
+  if (loading) return <div className="min-h-screen bg-[#fdfaf3] flex items-center justify-center font-serif text-2xl text-gray-400">Loading...</div>;
 
   return (
+    <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 relative">
+      <div className="max-w-4xl mx-auto">
+        {/* Back Button */}
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-400 hover:text-black mb-12 transition-colors">
+          <ArrowLeft size={18} /> Back to mentors
+        </button>
 
-    <section className='min-h-screen bg-slate-50 py-24 px-6'>
+        {/* MENTOR PROFILE UI */}
+        <div className="flex flex-col md:flex-row gap-12 items-start mb-20">
+          <div className="w-48 h-48 rounded-[40px] bg-orange-100 shrink-0 overflow-hidden border-4 border-white shadow-sm">
+            <img src={mentor.avatar} alt={mentor.name} className="w-full h-full object-cover" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-4 mb-4">
+              <h1 className="font-serif text-5xl text-[#1a1a1a]">{mentor.name}</h1>
+              <div className="flex items-center gap-1 text-sm font-bold bg-white px-3 py-1 rounded-full border border-black/5">
+                <Star size={14} className="fill-red-500 text-red-500" />
+                {mentor.mentorProfile?.avgRating || "5.0"}
+              </div>
+            </div>
+            <p className="text-xl text-gray-500 font-sans mb-8 leading-relaxed max-w-2xl">
+              {mentor.mentorProfile?.bio}
+            </p>
+            <button 
+              onClick={() => { setShowBookingModal(true); fetchSlots(selectedDate); }}
+              className="bg-[#120f0a] text-white px-10 py-4 rounded-full font-medium hover:bg-black transition-all shadow-xl active:scale-95"
+            >
+              Book a session • ₹{mentor.mentorProfile?.pricing}
+            </button>
+          </div>
+        </div>
 
-      <div className='max-w-7xl mx-auto'>
-       
-
-        {/* TOP SECTION */}
-        <div className='grid lg:grid-cols-3 gap-10'>
-
-          {/* LEFT */}
-          <div className='lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-10 shadow-sm'>
-
-            <div className='flex flex-col md:flex-row gap-8'>
-
-              <img
-                src={
-                  mentor.avatar 
-                }
-                alt={mentor.name}
-                className='w-52 h-52 rounded-3xl object-cover border border-slate-200'
-              />
-
-              <div className='flex-1'>
-
-                <div className='flex items-center gap-4 mb-4'>
-
-                  <h1 className='text-5xl font-black text-slate-900'>
-
-                    {mentor.name}
-
-                  </h1>
-
-                  <div className='flex items-center gap-1 bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold'>
-
-                    <Star
-                      size={18}
-                      fill='currentColor'
-                    />
-
-                    {
-                      mentor.mentorProfile
-                        ?.avgRating || 5
-                    }
-
-                  </div>
-
+        {/* REVIEWS SECTION */}
+        <div className="border-t border-black/5 pt-16">
+          <h2 className="font-serif text-3xl mb-10">Community feedback</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reviews.map((r) => (
+              <div key={r._id} className="bg-white/40 border border-black/5 rounded-4xl p-8">
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(r.rating)].map((_, i) => <Star key={i} size={14} className="fill-red-500 text-red-500" />)}
                 </div>
-
-                <p className='text-xl text-slate-500 mb-6'>
-
-                  {
-                    mentor.mentorProfile
-                      ?.bio
-                  }
-
-                </p>
-
-                {/* EXPERTISE */}
-                <div className='flex flex-wrap gap-3 mb-8'>
-
-                  {
-                    mentor.mentorProfile
-                      ?.expertise
-                      ?.map((item, index) => (
-
-                        <div
-                          key={index}
-                          className='bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl font-medium'
-                        >
-
-                          {item}
-
-                        </div>
-                      ))
-                  }
-
+                <p className="text-gray-600 mb-6 italic">"{r.comment}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-100" />
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{r.userId?.name}</p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-                {/* STATS */}
-                <div className='flex flex-wrap gap-8'>
+        {/* --- THE MODAL WITH BLURRY BACKGROUND --- */}
+        {showBookingModal && (
+          <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-md px-4 animate-in fade-in duration-300">
+            {/* Clickable area to close modal */}
+            <div className="absolute inset-0" onClick={() => setShowBookingModal(false)} />
 
-                  <div>
+            {/* Modal Card */}
+            <div className="relative bg-white w-full max-w-125 rounded-[40px] p-10 shadow-2xl scale-in-center">
+              <button onClick={() => setShowBookingModal(false)} className="absolute top-8 right-8 text-gray-400 hover:text-black transition-colors">
+                <X size={24} />
+              </button>
 
-                    <p className='text-slate-400 text-sm mb-1'>
-                      Pricing
-                    </p>
+              <header className="mb-8">
+                <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2">BOOK A SESSION WITH</p>
+                <h2 className="font-serif text-4xl text-[#1a1a1a] mb-1">{mentor.name}</h2>
+                <p className="text-gray-500 font-sans">{mentor.mentorProfile?.experience || 'Expert'}</p>
+              </header>
 
-                    <h3 className='text-3xl font-black text-slate-900'>
-
-                      ₹{
-                        mentor.mentorProfile
-                          ?.pricing
-                      }
-
-                    </h3>
-
-                  </div>
-
-                  <div>
-
-                    <p className='text-slate-400 text-sm mb-1'>
-                      Reviews
-                    </p>
-
-                    <h3 className='text-3xl font-black text-slate-900'>
-
-                      {
-                        mentor.mentorProfile
-                          ?.totalReviews || 0
-                      }
-
-                    </h3>
-
-                  </div>
-
+              <div className="mb-8">
+                <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4">PICK A DAY</p>
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {dateRange.map((date, i) => {
+                    const isSelected = date.toISOString().split('T')[0] === selectedDate;
+                    return (
+                      <button key={i} onClick={() => handleDateSelect(date)} className={`flex flex-col items-center min-w-15 py-4 rounded-2xl border transition-all ${isSelected ? 'bg-[#e94e36] border-[#e94e36] text-white shadow-lg shadow-red-200' : 'bg-white border-black/5 text-gray-500 hover:bg-gray-50'}`}>
+                        <span className="text-[10px] uppercase mb-1 font-bold">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                        <span className="font-serif text-xl">{date.getDate()}</span>
+                      </button>
+                    )
+                  })}
                 </div>
-
               </div>
 
-            </div>
-
-          </div>
-
-          {/* RIGHT */}
-          <div className='bg-white border border-slate-200 rounded-3xl p-8 shadow-sm h-fit'>
-
-            <div className='flex items-center gap-3 mb-6'>
-
-              <CalendarDays
-                className='text-indigo-600'
-              />
-
-              <h2 className='text-2xl font-bold text-slate-900'>
-                Book Session
-              </h2>
-
-            </div>
-
-            <input
-              type='date'
-              value={selectedDate}
-              onChange={handleDateChange}
-              className='w-full border border-slate-300 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-indigo-500 mb-6'
-            />
-
-            <div className='space-y-4 max-h-100 overflow-y-auto'>
-
-              {
-                slots.length > 0 ? (
-
-                  slots.map((slot, index) => (
-
-                    <button
-                      key={index}
-                      onClick={() =>
-                        handleBookSession(slot)
-                      }
-                      className='w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-4 rounded-2xl font-semibold transition'
-                    >
-
-                      {
-                        slot.formattedStartTime
-                      }
-
+              <div className="mb-10">
+                <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4">PICK A TIME</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {slots.length > 0 ? slots.map((slot, i) => (
+                    <button key={i} onClick={() => setSelectedSlot(slot)} className={`py-3 rounded-2xl border text-sm font-medium transition-all ${selectedSlot === slot ? 'bg-[#e94e36] border-[#e94e36] text-white' : 'bg-white border-black/5 text-gray-700 hover:border-black/20'}`}>
+                      {slot.formattedStartTime}
                     </button>
-                  ))
-
-                ) : (
-
-                  <div className='text-slate-500 text-center py-10'>
-                    No available slots
-                  </div>
-                )
-              }
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* REVIEWS */}
-        <div className='mt-16'>
-
-          <div className='flex items-center justify-between mb-10'>
-
-            <h2 className='text-4xl font-black text-slate-900'>
-              Reviews
-            </h2>
-
-            <div className='text-slate-500 font-medium'>
-
-              {reviews.length} Reviews
-
-            </div>
-
-          </div>
-
-          {
-            reviews.length === 0 ? (
-
-              <div className='bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-sm text-slate-500'>
-                No reviews yet
+                  )) : <div className="col-span-3 text-center py-6 text-gray-400 italic text-sm">No slots available.</div>}
+                </div>
               </div>
 
-            ) : (
-
-              <div className='grid md:grid-cols-2 gap-8'>
-
-                {
-                  reviews.map((review) => (
-
-                    <div
-                      key={review._id}
-                      className='bg-white border border-slate-200 rounded-3xl p-8 shadow-sm'
-                    >
-
-                      <div className='flex items-center gap-4 mb-6'>
-
-                        <img
-                          src={
-                            review.userId?.avatar ||
-                            'https://via.placeholder.com/100'
-                          }
-                          alt='user'
-                          className='w-16 h-16 rounded-full object-cover'
-                        />
-
-                        <div>
-
-                          <h3 className='text-xl font-bold text-slate-900'>
-                            {
-                              review.userId?.name
-                            }
-                          </h3>
-
-                          <p className='text-slate-500 text-sm'>
-                            {
-                              new Date(
-                                review.createdAt
-                              ).toLocaleDateString()
-                            }
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                      <div className='flex items-center gap-1 mb-5'>
-
-                        {
-                          [...Array(review.rating)]
-                            .map((_, index) => (
-
-                              <Star
-                                key={index}
-                                size={18}
-                                fill='currentColor'
-                                className='text-amber-400'
-                              />
-                            ))
-                        }
-
-                      </div>
-
-                      <p className='text-slate-600 leading-relaxed text-lg'>
-
-                        {review.comment}
-
-                      </p>
-
-                    </div>
-                  ))
-                }
-
+              <div className="flex items-center justify-between pt-8 border-t border-black/5">
+                <div>
+                  <span className="font-serif text-3xl text-[#1a1a1a]">₹{mentor.mentorProfile?.pricing}</span>
+                  <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">60-min session</p>
+                </div>
+                <button onClick={handleBookSession} className="bg-[#120f0a] text-white px-8 py-4 rounded-full font-medium hover:bg-black transition-all active:scale-95">
+                  {user ? 'Book now' : 'Log in to book'}
+                </button>
               </div>
-            )
-          }
-
-        </div>
-
+            </div>
+          </div>
+        )}
       </div>
-
     </section>
-  )
+  );
 }
 
-export default Mentor
+export default Mentor;

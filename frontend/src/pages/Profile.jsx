@@ -119,12 +119,12 @@ function Profile() {
 
   return (
     <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-30">
         
         {/* Header */}
         <header className="mb-16">
-          <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">ACCOUNT</p>
-          <h1 className="font-serif text-6xl text-[#1a1a1a] mb-6 tracking-tight">Your profile</h1>
+          <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-4">ACCOUNT</p>
+          <h1 className="hero-heading font-serif text-6xl text-[#1a1a1a] mb-6 tracking-tighter transform scale-y-[1.2] origin-left">Your profile</h1>
           <p className="text-gray-500 text-lg">Keep your details fresh so mentors recognize you.</p>
         </header>
 
@@ -134,13 +134,13 @@ function Profile() {
           <div className="lg:col-span-4 space-y-8">
             
             {/* Identity Card */}
-            <div className="bg-white/40 border border-black/5 rounded-[40px] p-10 text-center flex flex-col items-center">
+            <div className="bg-white/40 border border-black/15 rounded-[40px] p-10 text-center flex flex-col items-center">
               <div className="relative group mb-6">
                 <div className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden border-4 border-white shadow-sm flex items-center justify-center">
                    {user.avatar ? (
                        <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
                    ) : (
-                       <span className="font-serif text-4xl text-gray-400">{user.name[0]}</span>
+                       <span className="hero-heading tracking-tight font-serif text-4xl text-gray-400">{user.name[0]}</span>
                    )}
                 </div>
                 <label className="absolute bottom-1 right-1 bg-[#120f0a] p-2 rounded-full cursor-pointer hover:scale-110 transition-all text-white shadow-lg">
@@ -156,9 +156,10 @@ function Profile() {
             </div>
 
             {/* Password Card (Matches image_774311.png) */}
-            <div className="bg-white/40 border border-black/5 rounded-[40px] p-10">
-              <h3 className="font-serif text-2xl text-[#1a1a1a] mb-8 flex items-center gap-3">
-                <FiLock size={20} className="text-gray-400" /> Change password
+            <div className="bg-white/40 border border-black/15 rounded-[40px] py-6 px-10">
+              <h3 className="hero-heading font-serif text-xl text-[#1a1a1a] mb-8 flex items-center gap-3 transform scale-y-[1.2] origin-left tracking-tight">
+                <FiLock size={20} 
+                className="text-gray-400"/> Change password
               </h3>
               <div className="space-y-6">
                 <InputGroup label="CURRENT" name="oldPassword" type="password" value={passwordData.oldPassword} onChange={handlePasswordChange} />
@@ -175,7 +176,7 @@ function Profile() {
           </div>
 
           {/* RIGHT COLUMN: Details Form */}
-          <div className="lg:col-span-8 bg-white/40 border border-black/5 rounded-[40px] p-12">
+          <div className="lg:col-span-8 bg-white/40 border border-black/15 rounded-[40px] p-12">
             <h3 className="font-serif text-3xl text-[#1a1a1a] mb-10">Personal details</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">

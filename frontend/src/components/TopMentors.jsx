@@ -39,15 +39,6 @@ function TopMentors() {
     );
   }
 
-  // Helper to generate initials for the avatar if no image is present
-  const getInitials = (name) => name.split(' ').map(n => n[0]).join('').toUpperCase();
-
-  // Helper for pastel background colors like in image_839840.png
-  const getAvatarBg = (id) => {
-    const colors = ['bg-orange-200', 'bg-green-200', 'bg-blue-200', 'bg-rose-200', 'bg-yellow-200', 'bg-emerald-200'];
-    return colors[id.charCodeAt(id.length - 1) % colors.length];
-  };
-
   return (
     <section className="bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
@@ -81,11 +72,15 @@ function TopMentors() {
                 {/* Header: Avatar, Name, and Rating */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex gap-4 items-center">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-serif text-lg text-black/70 ${getAvatarBg(mentor._id)}`}>
-                      {getInitials(mentor.name)}
-                    </div>
+                    <img
+                      src={
+                        mentor.avatar
+                      }
+                      alt={mentor.name}
+                      className='w-14 h-14 rounded-2xl object-cover border border-black/10'
+                    />
                     <div>
-                      <h3 className="hero-heading font-serif text-xl text-[#1a1a1a] leading-tight tracking-tight transform scale-y-[1.2] origin-left">
+                      <h3 className="hero-heading font-serif text-xl text-[#1a1a1a] leading-tight tracking-tighter transform scale-y-[1.2] origin-left">
                         {mentor.name}
                       </h3>
                       <p className="text-gray-500 text-sm mt-1">

@@ -33,7 +33,7 @@ function Hero() {
 
       <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center ">
         <div 
-            className="absolute bottom-[-60%] left-[-30%] md:bottom-[-50%] md:left-[-20%] w-90 h-90 rounded-full opacity-90 blur-[90px] z-0"
+            className="absolute bottom-[-65%] left-[-40%] md:bottom-[-50%] md:left-[-20%] w-90 h-90 rounded-full opacity-90 blur-[90px] z-0"
             style={{
               background: 'radial-gradient(circle, #f5c9be 100%, transparent 70%)'
             }}
@@ -66,7 +66,7 @@ function Hero() {
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-8 pt-2 z-10">
             <button
-              onClick={() => navigate('/mentors')}
+              onClick={() => navigate('/browse-mentors')}
               className="bg-[#120f0a] text-[#fdfaf3] px-6 py-3 rounded-full font-medium flex items-center gap-3 hover:bg-black transition-all group text-sm"
             >
               Browse mentors

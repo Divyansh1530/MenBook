@@ -41,7 +41,7 @@ function NavBar() {
   const getProfileLink = () => '/profile'; // Both roles use the same /profile route
 
   return (
-    <nav className="w-full bg-[#fdfaf3] border-b border-black/5 px-6 md:px-12 relative z-100">
+    <nav className="sticky top-0 w-full bg-[#fdfaf3]/90 backdrop-blur-sm border-b border-black/5 px-6 md:px-12 z-9999">
       <div className="max-w-7xl mx-auto flex justify-between h-16 items-center">
         
         {/* Brand */}
@@ -55,7 +55,7 @@ function NavBar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-10">
           <Link to="/" className="text-[0.95rem] font-medium text-gray-700 hover:text-black transition-colors">Home</Link>
-          <Link to="/mentors" className="text-[0.95rem] font-medium text-gray-700 hover:text-black transition-colors">Browse mentors</Link>
+          <Link to="/browse-mentors" className="text-[0.95rem] font-medium text-gray-700 hover:text-black transition-colors">Browse mentors</Link>
           
           {/* MENTOR ONLY LINK: Show Availability in the main Navbar */}
           {user?.role === 'mentor' && (
@@ -164,7 +164,7 @@ function NavBar() {
             Home
             </Link>
           <Link 
-          to="/mentors" 
+          to="/browse-mentors" 
           className="block text-lg font-medium text-gray-800" 
           onClick={() => setMenuOpen(false)}>
             Browse Mentors

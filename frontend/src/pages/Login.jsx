@@ -39,12 +39,12 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fdfaf3] flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-[#fdfaf3] flex flex-col items-center justify-center pb-15 md:pt-5 p-6">
       <div className="w-full max-w-md">
         
         {/* Header Section */}
         <div className="mb-10">
-          <h1 className="hero-heading font-serif text-5xl text-[#1a1a1a] mb-3 tracking-tighter">
+          <h1 className="hero-heading font-serif text-4xl text-[#1a1a1a] mb-3 tracking-tight transform scale-y-[1.4] origin-left">
             Welcome back.
           </h1>
           <p className="text-gray-600 font-sans">
@@ -87,7 +87,7 @@ function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#120f0a] text-white py-3 rounded-full font-medium text-lg hover:bg-black transition-all active:scale-[0.98] mt-4"
+            className="w-full bg-[#120f0a] text-white py-2 rounded-full font-medium text-lg hover:bg-black transition-all active:scale-[0.98] mt-4"
           >
             {loading ? 'Logging in...' : 'Log in'}
           </button>

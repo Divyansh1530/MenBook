@@ -95,7 +95,7 @@ cron.schedule("*/5 * * * *", async () => {
 
         const thirtyMinutesLater =
             new Date(
-                Date.now() + 2 * 60 * 1000
+                Date.now() + 30 * 60 * 1000
             )
 
         /*

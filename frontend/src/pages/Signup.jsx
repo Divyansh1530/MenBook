@@ -56,7 +56,7 @@ function Signup() {
         
         {/* Header Section */}
         <div className="text-center mb-10">
-          <h1 className="hero-heading font-serif text-left text-5xl text-[#1a1a1a] mb-3 tracking-tighter">
+          <h1 className="hero-heading font-serif text-left text-4xl text-[#1a1a1a] mb-3 tracking-tighter transform scale-y-[1.3] origin-left">
             Create your account.
           </h1>
           <p className="text-gray-500 text-left font-sans">
@@ -177,7 +177,7 @@ function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#120f0a] text-white py-4 rounded-full font-medium text-lg hover:bg-black transition-all active:scale-[0.98] mt-4"
+            className="w-full bg-[#120f0a] text-white py-3 rounded-full font-medium text-lg hover:bg-black transition-all active:scale-[0.98] mt-4"
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
