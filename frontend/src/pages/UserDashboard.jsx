@@ -3,18 +3,17 @@ import axios from 'axios'
 import { Star, Calendar, CheckSquare, TrendingUp, ArrowRight, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
-function UserDashboard() {
+function UserDashboard({
+  user
+}) {
   const navigate = useNavigate()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
-  const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) setUser(JSON.parse(storedUser))
     fetchBookings()
   }, [])
 
@@ -67,7 +66,7 @@ function UserDashboard() {
           <div className="w-full">
             <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-3 md:mb-4">WELCOME BACK</p>
             <h1 className="hero-heading font-serif text-4xl sm:text-5xl md:text-6xl text-[#1a1a1a] mb-4 tracking-tighter transform scale-y-[1.2] origin-left">
-              {user?.name.split(' ')[0] || 'User'}.
+              {user?.name?.split(' ')[0] || 'User'}.
             </h1>
             <p className="text-gray-500 text-base md:text-lg">A snapshot of your learning journey.</p>
           </div>

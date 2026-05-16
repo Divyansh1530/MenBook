@@ -3,14 +3,15 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, X, ChevronLeft, ChevronRight, CalendarDays, ArrowLeft } from 'lucide-react';
 
-function Mentor() {
+function Mentor({
+  user
+}) {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [mentor, setMentor] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   // Modal and Slot states
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -20,8 +21,6 @@ function Mentor() {
   const [dateRange, setDateRange] = useState([]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
 
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -86,7 +85,7 @@ function Mentor() {
   };
 
   const handleBookSession = async () => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate('/login'); return }
     if (!selectedSlot) return alert("Please select a time slot");
 
     try {

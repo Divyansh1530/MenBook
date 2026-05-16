@@ -9,18 +9,22 @@ import {
     updateUserAvatar, 
     updateAccountDetails,
     getSingleMentor,
-    getAllMentors
+    getAllMentors,
+    googleAuthCallback
 } from '../controllers/auth.controller.js'
 import {upload} from '../middlewares/multer.middleware.js'
 import { verifyJWT } from '../middlewares/auth.middleware.js'
+import passport from 'passport'
+import { authLimiter } from '../middlewares/rateLimit.middleware.js'
 
 const router = Router()
 
 router.route("/register").post(
     upload.single("avatar"),
+    authLimiter,
     registerUser
 )
-router.route("/login").post(loginUser)
+router.route("/login").post(authLimiter,loginUser)
 
 router.route("/logout").post(verifyJWT,logoutUser)
 router.route("/change-password").patch(verifyJWT,changeCurrentPassword)
@@ -29,4 +33,20 @@ router.route("/update-avatar").patch(verifyJWT, upload.single("avatar"),updateUs
 router.route("/current-user").get(verifyJWT,getCurrentUser)
 router.route("/mentors/:id").get(getSingleMentor)
 router.route("/mentors").get(getAllMentors)
+router.get("/auth/google",passport.authenticate(
+    "google",
+    {
+        scope:["profile","email"]
+    }
+  )
+)
+router.get("/auth/google/callback",passport.authenticate(
+    "google",
+    {
+        session:false
+    }
+  ),
+   googleAuthCallback
+)
+
 export default router

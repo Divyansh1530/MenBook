@@ -2,7 +2,9 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
 
-function Login() {
+function Login({
+  setUser
+}) {
   const navigate = useNavigate()
   const [role, setRole] = useState('user') // State for User/Mentor toggle
   const [formData, setFormData] = useState({
@@ -27,9 +29,8 @@ function Login() {
         { ...formData, role }, // Including role in request if your backend needs it
         { withCredentials: true }
       )
-
-      localStorage.setItem('user', JSON.stringify(response.data.data.user))
-      window.location.href = "/"
+      setUser(response.data.data.user)
+      navigate("/")
     } catch (error) {
       console.log(error)
       alert(error.response?.data?.message || 'Login failed')
@@ -82,6 +83,12 @@ function Login() {
               required
             />
           </div>
+          <a 
+          href="http://localhost:8000/api/v1.1/users/auth/google"
+          className="w-full flex justify-center items-center gap-3 border-black/10 py-3 rounded-2xl"
+          >
+          Continue With Google
+          </a>
 
           {/* Submit Button */}
           <button

@@ -102,12 +102,19 @@ function App() {
 
           <Route
             path="/mentors/:id"
-            element={<Mentor />}
+            element={
+            <Mentor
+            user={user}
+               />}
           />
 
           <Route
-            path="/mentors"
-            element={<TopMentors />}
+            path="/mentors/:id"
+            element={
+              <Mentor
+                user={user}
+              />
+            }
           />
 
           <Route
@@ -124,21 +131,25 @@ function App() {
                 user={user}
                 allowedRole="user"
               >
-                <UserDashboard />
+                <UserDashboard
+                user={user}
+                />
               </ProtectedRoute>
             }
           />
 
           {/* MENTOR DASHBOARD */}
 
-          <Route
+         <Route
             path="/mentor-dashboard"
             element={
               <ProtectedRoute
                 user={user}
                 allowedRole="mentor"
               >
-                <MentorDashboard />
+                <MentorDashboard
+                  user={user}
+                />
               </ProtectedRoute>
             }
           />

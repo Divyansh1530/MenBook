@@ -16,7 +16,7 @@ const userSchema = new Schema({
     },
     password:{
         type:String,
-        required:true
+        required:false
     },
     avatar:{
         type:String,
@@ -57,7 +57,10 @@ const userSchema = new Schema({
     },
     refreshToken:{
         type:String
-    }    
+    },
+    googleId:{
+        type:String
+    }
 },
 
 {

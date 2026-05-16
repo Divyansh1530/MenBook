@@ -324,9 +324,12 @@ const getAllMentors = asyncHandler(async (req, res) => {
 
     const {
         search,
+        specialization,
         minPrice,
         maxPrice,
-        minRating
+        rating,
+        sortBy,
+        order
     } = req.query
 
     let query = {
@@ -335,36 +338,101 @@ const getAllMentors = asyncHandler(async (req, res) => {
 
     if (search) {
 
-        query["mentorProfile.expertise"] = {
-            $regex: search,
-            $options: "i"
-        }
+        query.$or = [
+
+            { 
+                name: {
+                    $regex: search,
+                    $options: "i"
+                }
+            },
+
+            {
+                "mentorProfile.bio": {
+                    $regex: search,
+                    $options: "i"
+                }
+            },
+
+            {
+                "mentorProfile.expertise": {
+                    $regex: search,
+                    $options: "i"
+                }
+            }
+        ]
     }
+       if (specialization) {
 
-    if (minPrice || maxPrice) {
+        query[
+            "mentorProfile.expertise"
+        ] = {
 
-        query["mentorProfile.pricing"] = {}
+            $in: [specialization]
+        }
+        }
+
+        if (minPrice || maxPrice) {
+
+             query[
+                 "mentorProfile.pricing"
+              ] = {}
 
         if (minPrice) {
-            query["mentorProfile.pricing"].$gte =
-                Number(minPrice)
+
+            query[
+                "mentorProfile.pricing"
+            ].$gte = Number(minPrice)
         }
 
         if (maxPrice) {
-            query["mentorProfile.pricing"].$lte =
-                Number(maxPrice)
+
+            query[
+                "mentorProfile.pricing"
+            ].$lte = Number(maxPrice)
+        }
+     }
+
+     if (rating) {
+
+        query[
+            "mentorProfile.avgRating"
+        ] = {
+
+            $gte: Number(rating)
         }
     }
 
-    if (minRating) {
+    let sortOptions = {}
 
-        query["mentorProfile.avgRating"] = {
-            $gte: Number(minRating)
-        }
-    }
+        if (sortBy === "price") {
+
+            sortOptions[
+                "mentorProfile.pricing"
+            ] = order === "desc"
+                ? -1
+                : 1
+            }
+        if (sortBy === "rating") {
+
+            sortOptions[
+                 "mentorProfile.avgRating"
+            ] = order === "desc"
+                ? -1
+                : 1
+            }
+         if (sortBy === "experience") {
+
+            sortOptions[
+                "mentorProfile.experience"
+            ] = order === "desc"
+                ? -1
+                : 1
+            }
 
     const mentors = await User.find(query)
     .select("-password -refreshToken")
+    .sort(sortOptions)
 
     return res
     .status(200)
@@ -375,6 +443,40 @@ const getAllMentors = asyncHandler(async (req, res) => {
             "Mentors fetched successfully"
         )
     )
+})
+
+const googleAuthCallback = asyncHandler(async(req,res) => {
+
+    const user = req.user
+
+    const accessToken = user.generateAccessToken()
+    const refreshToken = user.generateRefreshToken()
+
+    user.refreshToken = refreshToken
+
+    await user.save()
+
+    const options ={
+        httpOnly:true,
+        secure:false,
+        sameSite:"lax"
+    }
+
+    return res
+   .cookie(
+      "accessToken",
+      accessToken,
+      options
+   )
+   .cookie(
+      "refreshToken",
+      refreshToken,
+      options
+   )
+   .redirect(
+      "http://localhost:5173"
+   )
+
 })
 
 
@@ -388,5 +490,6 @@ export {
     updateAccountDetails,
     updateUserAvatar,
     getSingleMentor,
-    getAllMentors
+    getAllMentors,
+    googleAuthCallback
 }

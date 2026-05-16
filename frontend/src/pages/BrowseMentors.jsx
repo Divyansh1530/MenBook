@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useMemo } from 'react';
 import axios from 'axios';
 import { Star, Search } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,9 +7,13 @@ function BrowseMentors() {
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
-  
+  const [specialization,setSpecialization] = useState("")
+  const [minPrice,setMinPrice] = useState("")
+  const [rating,setRating] = useState("")
+  const [sortBy,setSortBy] = useState("")
   const query = searchParams.get('search') || '';
   const [search, setSearch] = useState(query);
+  const [debouncedSearch , setDebouncedSearch] = useState(search)
   
   const navigate = useNavigate();
 
@@ -26,11 +30,33 @@ function BrowseMentors() {
   ];
 
   useEffect(() => {
+
+  const timer = setTimeout(() => {
+
+    setDebouncedSearch(search)
+
+  }, 500)
+
+  return () => {
+
+    clearTimeout(timer)
+  }
+
+}, [search])
+
+  useEffect(() => {
     const fetchMentors = async () => {
       setLoading(true);
       try {
         const response = await axios.get('http://localhost:8000/api/v1.1/users/mentors', {
-          params: { search: query }
+          params: { 
+            search:debouncedSearch,
+            specialization,
+            minPrice,
+            rating,
+            sortBy,
+            order:"desc"
+           }
         });
         setMentors(response.data.data);
       } catch (error) {
@@ -40,11 +66,13 @@ function BrowseMentors() {
       }
     };
     fetchMentors();
-  }, [query]);
-
-  const handleSearchSubmit = (e) => {
-    if (e.key === 'Enter') setSearchParams({ search });
-  };
+  }, [
+    debouncedSearch,
+    specialization,
+    minPrice,
+    rating,
+    sortBy
+  ]);
 
   const handleCategoryClick = (catName) => {
     if (catName === 'All') {
@@ -80,39 +108,163 @@ function BrowseMentors() {
         </header>
 
         {/* Search and Filters */}
-        <div className="mb-12 sm:mb-16 space-y-6">
-          {/* Search Bar - Full width on mobile */}
-          <div className="relative w-full sm:max-w-lg">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input 
-              type="text"
-              placeholder="Search by name or role..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={handleSearchSubmit}
-              className="w-full bg-white border border-black/5 rounded-full py-3 sm:py-4 pl-12 pr-6 outline-none focus:ring-2 focus:ring-black/5 transition-all shadow-sm text-sm sm:text-base"
-            />
-          </div>
+        {/* Search and Filters */}
+<div className="mb-12 sm:mb-16 space-y-6">
 
-          {/* Specialization Chips - Responsive Layout */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 overflow-visible">
-            {categories.map((cat) => (
-              <button
-                key={cat.name}
-                onClick={() => handleCategoryClick(cat.name)}
-                className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap ${
-                  (query === cat.name || (cat.name === 'All' && !query))
-                  ? 'bg-[#120f0a] text-white border-[#120f0a]' 
-                  : 'bg-white/50 border-black/5 text-gray-600 hover:border-black/20 hover:bg-white'
-                }`}
-              >
-                {cat.icon && <span className="text-red-500/80 text-sm">{cat.icon}</span>}
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
+  {/* Search Bar */}
+  <div className="relative w-full sm:max-w-lg">
 
+    <Search
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
+    />
+
+    <input
+      type="text"
+      placeholder="Search by name, bio or expertise..."
+      value={search}
+      onChange={(e) =>
+        setSearch(e.target.value)
+      }
+  
+      className="w-full bg-white border border-black/5 rounded-full py-3 sm:py-4 pl-12 pr-6 outline-none focus:ring-2 focus:ring-black/5 transition-all shadow-sm text-sm sm:text-base"
+    />
+  </div>
+
+  {/* FILTER CONTROLS */}
+  <div className="flex flex-col lg:flex-row gap-4">
+
+    {/* MIN PRICE */}
+    <div className="flex-1">
+
+      <label className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2 block">
+
+        Min Price
+
+      </label>
+
+      <input
+        type="number"
+        placeholder="500"
+        value={minPrice}
+        onChange={(e) =>
+          setMinPrice(e.target.value)
+        }
+        className="w-full bg-white border border-black/5 rounded-2xl px-5 py-3 outline-none focus:ring-2 focus:ring-black/5 text-sm"
+      />
+
+    </div>
+
+    {/* RATING */}
+    <div className="flex-1">
+
+      <label className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2 block">
+
+        Minimum Rating
+
+      </label>
+
+      <select
+        value={rating}
+        onChange={(e) =>
+          setRating(e.target.value)
+        }
+        className="w-full bg-white border border-black/5 rounded-2xl px-5 py-3 outline-none focus:ring-2 focus:ring-black/5 text-sm"
+      >
+
+        <option value="">
+          Any Rating
+        </option>
+
+        <option value="5">
+          5 Stars
+        </option>
+
+        <option value="4">
+          4+ Stars
+        </option>
+
+        <option value="3">
+          3+ Stars
+        </option>
+
+      </select>
+
+    </div>
+
+    {/* SORT */}
+    <div className="flex-1">
+
+      <label className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2 block">
+
+        Sort By
+
+      </label>
+
+      <select
+        value={sortBy}
+        onChange={(e) =>
+          setSortBy(e.target.value)
+        }
+        className="w-full bg-white border border-black/5 rounded-2xl px-5 py-3 outline-none focus:ring-2 focus:ring-black/5 text-sm"
+      >
+
+        <option value="">
+          Recommended
+        </option>
+
+        <option value="price">
+          Price
+        </option>
+
+        <option value="rating">
+          Rating
+        </option>
+
+        <option value="experience">
+          Experience
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  {/* SPECIALIZATION CHIPS */}
+  <div className="flex flex-wrap gap-2 sm:gap-3 overflow-visible">
+
+    {categories.map((cat) => (
+
+      <button
+        key={cat.name}
+        onClick={() =>
+          handleCategoryClick(cat.name)
+        }
+        className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap ${
+          (query === cat.name ||
+          (cat.name === 'All' && !query))
+            ? 'bg-[#120f0a] text-white border-[#120f0a]'
+            : 'bg-white/50 border-black/5 text-gray-600 hover:border-black/20 hover:bg-white'
+        }`}
+      >
+
+        {cat.icon && (
+
+          <span className="text-red-500/80 text-sm">
+
+            {cat.icon}
+
+          </span>
+        )}
+
+        {cat.name}
+
+      </button>
+    ))}
+
+  </div>
+
+</div>
         {/* Results Grid - Column adjustments for mobile */}
         {loading ? (
           <div className="text-center py-20 font-serif text-2xl text-gray-400 animate-pulse">Searching database...</div>

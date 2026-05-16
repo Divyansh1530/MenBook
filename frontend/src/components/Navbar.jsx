@@ -3,31 +3,44 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Menu, X, LogOut, LayoutDashboard, User, Calendar } from 'lucide-react';
 
-function NavBar() {
+function NavBar({
+  user,
+  setUser
+}) {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
 
-    // Close profile dropdown when clicking anywhere else
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setProfileOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const handleClickOutside = (event) => {
+
+    if (
+      profileRef.current &&
+      !profileRef.current.contains(event.target)
+    ) {
+
+      setProfileOpen(false)
+    }
+  }
+
+  document.addEventListener(
+    'mousedown',
+    handleClickOutside
+  )
+
+  return () =>
+    document.removeEventListener(
+      'mousedown',
+      handleClickOutside
+    )
+
+}, [])
 
   const handleLogout = async () => {
     try {
       await axios.post('http://localhost:8000/api/v1.1/users/logout', {}, { withCredentials: true });
-      localStorage.removeItem('user');
       setUser(null);
       setProfileOpen(false);
       navigate('/login');

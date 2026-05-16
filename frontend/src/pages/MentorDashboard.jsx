@@ -3,15 +3,15 @@ import axios from 'axios';
 import { Calendar, CheckSquare, Users, TrendingUp, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-function MentorDashboard() {
+function MentorDashboard({
+  user
+}) {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
+
     fetchBookings();
   }, []);
 
@@ -62,7 +62,7 @@ function MentorDashboard() {
           <div className="w-full md:w-auto">
             <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-3 md:mb-4">MENTOR DESK</p>
             <h1 className="hero-heading transform scale-y-[1.1] md:scale-y-[1.2] origin-left font-serif text-4xl sm:text-5xl md:text-6xl text-[#1a1a1a] mb-4 tracking-tight">
-              Hi, {user?.name.split(' ')[0] || 'Mentor'}.
+              Hi, {user?.name?.split(' ')[0] || 'Mentor'}.
             </h1>
             <p className="text-gray-500 text-base md:text-lg">Your bookings and earnings at a glance.</p>
           </div>
