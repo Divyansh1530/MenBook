@@ -29,7 +29,7 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 
 const registerUser = asyncHandler( async (req, res) => {
 
-    const { name , email , password , role , bio , expertise , pricing } = req.body
+    const { name , email , password , role , title , bio , expertise , pricing } = req.body
 
     if (
         [email, name, password].some((field) => field?.trim() === "")
@@ -44,7 +44,7 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     const existedUser = await User.findOne({
-        $or: [{ name }, { email }]
+        email 
     })
 
     if (existedUser) {
@@ -56,11 +56,6 @@ const registerUser = asyncHandler( async (req, res) => {
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
    
-    let parsedExpertise = []
-
-    if (expertise) {
-    parsedExpertise = JSON.parse(expertise)
-    }
     const userData = {
         name,
         avatar: avatar?.url || "",
@@ -70,17 +65,39 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
         if (role === "mentor") {
+            if (
+                !title ||
+                !bio ||
+                !expertise ||
+                !pricing
+            ) {
+                throw new ApiError(
+                    400,
+                    "All mentor fields are required"
+                )
+            }
 
         let parsedExpertise = []
 
-        if (expertise) {
-            parsedExpertise = JSON.parse(expertise)
+        try {
+
+            if (expertise) {
+                parsedExpertise = JSON.parse(expertise)
+            }
+
+        } catch (error) {
+
+            throw new ApiError(
+                400,
+                "Invalid expertise format"
+            )
         }
 
         userData.mentorProfile = {
+            title,
             bio,
             expertise: parsedExpertise,
-            pricing
+            pricing:Number(pricing)
         }
     }
 
@@ -430,16 +447,31 @@ const getAllMentors = asyncHandler(async (req, res) => {
                 : 1
             }
 
+        const page = Number(req.query.page) || 1
+
+        const limit = Number(req.query.limit) || 9
+
+        const skip = (page - 1) * limit
+
+        const totalMentors = await User.countDocuments(query)
+
     const mentors = await User.find(query)
     .select("-password -refreshToken")
     .sort(sortOptions)
+    .skip(skip)
+    .limit(limit)
 
     return res
     .status(200)
     .json(
         new ApiResponse(
             200,
+            {
             mentors,
+            currentPage: page,
+            totalPages:Math.ceil(totalMentors/limit),
+            totalMentors
+            },
             "Mentors fetched successfully"
         )
     )

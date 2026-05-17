@@ -137,10 +137,6 @@ const verifyPayment = asyncHandler(async(req,res) => {
         )
     }
 
-    /*
-        UPDATE BOOKING
-    */
-
     booking.status = "confirmed"
 
     booking.paymentStatus = "paid"
@@ -154,18 +150,10 @@ const verifyPayment = asyncHandler(async(req,res) => {
     booking.razorpaySignature =
         razorpay_signature
 
-    /*
-        GENERATE MEETING LINK
-    */
-
     booking.meetingLink =
         `https://meet.jit.si/menbook-${booking._id}`
 
     await booking.save()
-
-    /*
-        GET USER + MENTOR
-    */
 
     const user =
         await User.findById(
@@ -176,10 +164,6 @@ const verifyPayment = asyncHandler(async(req,res) => {
         await User.findById(
             booking.mentorId
         )
-
-    /*
-        SEND EMAIL TO USER
-    */
 
     await sendEmail({
 
@@ -210,10 +194,6 @@ const verifyPayment = asyncHandler(async(req,res) => {
             </p>
         `
     })
-
-    /*
-        SEND EMAIL TO MENTOR
-    */
 
     await sendEmail({
 

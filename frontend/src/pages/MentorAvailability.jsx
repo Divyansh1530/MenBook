@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Plus, Clock, Calendar as CalendarIcon, Trash2 } from 'lucide-react'
+import { useNavigate, Navigate } from 'react-router-dom'
 
-function MentorAvailability() {
+function MentorAvailability({
+  user
+}) {
+  const navigate = useNavigate()
   const [availability, setAvailability] = useState([])
   const [formData, setFormData] = useState({
     dayOfWeek: 1,
@@ -15,6 +19,10 @@ function MentorAvailability() {
   const days = [
     'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
   ]
+
+  if (user && user.role !== "mentor") {
+    return <Navigate to="/" />
+  }
 
   const fetchAvailability = async () => {
     try {
@@ -42,6 +50,17 @@ function MentorAvailability() {
 
   const handleCreateAvailability = async () => {
     try {
+      if (startMins >= endMins) {
+        return alert("End time must be after start time")
+      }
+
+      if (Number(formData.slotDuration) <= 0) {
+        return alert("Invalid slot duration")
+      }
+
+      if (Number(formData.bufferTime) < 0) {
+        return alert("Invalid buffer time")
+      }
       const payload = {
         dayOfWeek: Number(formData.dayOfWeek),
         startTime: convertTimeToMinutes(formData.startTime),
@@ -58,6 +77,17 @@ function MentorAvailability() {
       alert(error.response?.data?.message || 'Failed to create availability')
     }
   }
+  
+  const handleDeleteAvailability = async (id) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/v1.1/availability/${id}`, {
+        withCredentials: true
+      })
+      fetchAvailability()
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to delete")
+    }
+  }
 
   const formatMinutes = (minutes) => {
     const hours = Math.floor(minutes / 60)
@@ -67,37 +97,36 @@ function MentorAvailability() {
     return `${formattedHours}:${mins.toString().padStart(2, '0')} ${period}`
   }
 
-  // Calculate generated slots for the preview badge in image_77b73a.png
+  // Calculate generated slots for the preview badge
   const startMins = convertTimeToMinutes(formData.startTime)
   const endMins = convertTimeToMinutes(formData.endTime)
   const totalDuration = endMins - startMins
   const slotsCount = totalDuration > 0 ? Math.floor(totalDuration / (Number(formData.slotDuration) + Number(formData.bufferTime))) : 0
 
   return (
-    <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
-      <div className="max-w-7xl mx-35">
+    <section className="min-h-screen bg-[#fdfaf3] py-24 px-4 sm:px-6 md:px-12 lg:px-24">
+
+      <div className="max-w-7xl mx-auto xl:px-20">
         
-        {/* Header Section */}
-        <header className="mb-16">
+        <header className="mb-12 md:mb-16">
           <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-4">
             CALENDAR
           </p>
-          <h1 className="hero-heading font-serif text-6xl text-[#1a1a1a] mb-6 tracking-tight transform scale-y-[1.2] origin-left">
+          <h1 className="hero-heading font-serif text-4xl sm:text-5xl md:text-6xl text-[#1a1a1a] mb-6 tracking-tight transform scale-y-[1.2] origin-left">
             Your availability
           </h1>
-          <p className="text-gray-500 max-w-xl text-lg font-sans leading-relaxed">
+          <p className="text-gray-500 max-w-xl text-base sm:text-lg font-sans leading-relaxed">
             Define a window — we'll slice it into bookable slots with the buffer you need between sessions.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           
-          {/* Left: New Window Form (Mimicking image_77b73a.png) */}
-          <div className="lg:col-span-5 bg-white/40 border border-black/5 rounded-[40px] p-10 shadow-sm">
+          <div className="lg:col-span-5 bg-white/40 border border-black/5 rounded-[40px] p-6 sm:p-10 shadow-sm">
             <h2 className="hero-heading transform scale-y-[1.2] origin-left font-serif text-2xl text-[#1a1a1a] mb-8 tracking-tighter">New window</h2>
             
             <div className="space-y-6">
-              {/* Day Selection */}
+
               <div>
                 <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">DAY</label>
                 <select
@@ -112,8 +141,7 @@ function MentorAvailability() {
                 </select>
               </div>
 
-              {/* Time Inputs Row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">START TIME</label>
                   <div className="relative">
@@ -133,13 +161,12 @@ function MentorAvailability() {
                     name="endTime"
                     value={formData.endTime}
                     onChange={handleChange}
-                    className="w-full bg-[#fbf6ee] border border-black/10 rounded-2xl px-5 py-4 #outline-none focus:border-black/30 transition-all font-sans"
+                    className="w-full bg-[#fbf6ee] border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
                   />
                 </div>
               </div>
 
-              {/* Duration Inputs Row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">SLOT DURATION (MIN)</label>
                   <input
@@ -162,7 +189,6 @@ function MentorAvailability() {
                 </div>
               </div>
 
-              {/* Slot Preview Badge */}
               <div className="bg-[#eee7dd] rounded-2xl p-4 text-xs text-gray-500 font-sans">
                 Will generate <span className="font-bold text-black">{slotsCount}</span> slots
               </div>
@@ -177,12 +203,11 @@ function MentorAvailability() {
             </div>
           </div>
 
-          {/* Right: Existing Windows */}
           <div className="lg:col-span-7">
             <h2 className="hero-heading font-serif text-2xl text-[#1a1a1a] mb-8 tracking-tighter transform scale-y-[1.2] origin-left">Your windows</h2>
             
             {availability.length === 0 ? (
-              <div className="border-2 border-dashed border-black/5 rounded-[40px] p-20 text-center">
+              <div className="border-2 border-dashed border-black/5 rounded-[40px] p-10 sm:p-20 text-center">
                 <p className="text-gray-500 font-sans">
                   No windows yet. Create your first one &rarr;
                 </p>
@@ -192,22 +217,25 @@ function MentorAvailability() {
                 {availability.map((item) => (
                   <div
                     key={item._id}
-                    className="bg-white/40 border border-black/5 rounded-4xl p-8 flex items-center justify-between transition-all hover:bg-white hover:shadow-lg hover:shadow-black/5"
+                    className="bg-white/40 border border-black/5 rounded-4xl p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:bg-white hover:shadow-lg hover:shadow-black/5"
                   >
                     <div>
-                      <h3 className="font-serif text-2xl text-[#1a1a1a] mb-2">
+                      <h3 className="font-serif text-xl sm:text-2xl text-[#1a1a1a] mb-2">
                         {days[item.dayOfWeek]}
                       </h3>
-                      <div className="flex items-center gap-4 text-gray-500 text-sm">
-                        <span className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-gray-500 text-sm">
+                        <span className="flex items-center gap-1.5 whitespace-nowrap">
                           <Clock size={14} />
                           {formatMinutes(item.startTime)} - {formatMinutes(item.endTime)}
                         </span>
-                        <span className="w-1 h-1 rounded-full bg-gray-300" />
-                        <span>{item.slotDuration}m slots</span>
+                        <span className="hidden sm:inline w-1 h-1 rounded-full bg-gray-300" />
+                        <span className="whitespace-nowrap">{item.slotDuration}m slots</span>
                       </div>
                     </div>
-                    <button className="text-gray-300 hover:text-red-500 transition-colors p-2">
+                    <button
+                      onClick={() => handleDeleteAvailability(item._id)}
+                      className="text-gray-300 hover:text-red-500 transition-colors p-2 self-end sm:self-center"
+                    >
                       <Trash2 size={20} />
                     </button>
                   </div>

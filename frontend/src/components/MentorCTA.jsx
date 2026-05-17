@@ -7,10 +7,8 @@ function MentorCTA() {
   return (
     <section className="bg-[#fdfaf3] pb-30 px-4 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
-        {/* Main Card Container */}
         <div className="relative overflow-hidden bg-[#1a110a] rounded-[25px] p-12 md:p-20 lg:p-22 flex flex-col items-start gap-8">
           
-          {/* Subtle Radial Glow Effect */}
           <div 
             className="absolute bottom-[-20%] right-[-4%] w-90 h-90 rounded-full opacity-70 blur-[80px]"
             style={{
@@ -18,7 +16,6 @@ function MentorCTA() {
             }}
           />
 
-          {/* Text Content */}
           <div className="relative z-10 max-w-2xl space-y-6">
             <p className="text-[11px] font-normal tracking-[0.2em] text-[#d1c8b9] uppercase">
               FOR MENTORS
@@ -35,13 +32,12 @@ function MentorCTA() {
             </p>
           </div>
 
-          {/* Action Button */}
           <button
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate('/signup?role=mentor')}
             className="relative z-10 bg-[#fdfaf3] text-[#1a110a] px-7 py-3 rounded-full font-medium text-sm hover:bg-white transition-all active:scale-95"
           >
             Apply to be a mentor
-          </button>
+          </button> x
         </div>
       </div>
     </section>

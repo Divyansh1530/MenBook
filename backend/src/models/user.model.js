@@ -34,6 +34,9 @@ const userSchema = new Schema({
         type:String
     },
     mentorProfile:{
+        title:{
+            type:String
+        },
         bio:{
             type:String,
         },

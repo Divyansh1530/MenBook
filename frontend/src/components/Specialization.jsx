@@ -20,7 +20,6 @@ function Specialization() {
     <section className="bg-[#fdfaf3] py-24 border-t border-black/5  px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header Section */}
         <div className="mb-16">
           <p className="text-[11px] font-normal tracking-[0.2em] text-black/80 uppercase mb-4">
             01 — SPECIALIZATIONS
@@ -31,20 +30,19 @@ function Specialization() {
           </div>
         </div>
 
-        {/* Grid Section */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {categories.map((cat) => (
             <div
               key={cat.id}
-              onClick={() => navigate(`/mentors?search=${cat.name}`)}
+              onClick={() => navigate(`/browse-mentors?search=${cat.name}`)}
               className="group bg-[#fdf9f3] border border-black/15 rounded-2xl p-6 flex flex-col items-start justify-between min-h-40 transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-black/5 cursor-pointer"
             >
-              {/* Symbolic Icon */}
+
               <div className="text-2xl text-red-500/80 mb-8 transition-transform group-hover:scale-110">
                 {cat.icon}
               </div>
 
-              {/* Text Content */}
+
               <div>
                 <h3 className="hero-heading tracking-tighter font-serif text-xl text-[#1a1a1a] mb-2 transform scale-y-[1.2] origin-left">
                   {cat.name}

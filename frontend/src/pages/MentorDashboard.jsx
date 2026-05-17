@@ -9,6 +9,7 @@ function MentorDashboard({
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('upcoming')
 
   useEffect(() => {
 
@@ -48,16 +49,50 @@ function MentorDashboard({
     </div>
   );
 
-  const upcomingCount = bookings.filter(b => b.status === 'confirmed').length;
-  const completedCount = bookings.filter(b => b.status === 'completed').length;
-  const learnerCount = new Set(bookings.map(b => b.userId?._id)).size;
-  const totalEarnings = bookings.reduce((acc, curr) => acc + (curr.status === 'completed' ? curr.amount : 0), 0);
+  const now = new Date()
+
+const upcomingBookings = bookings.filter(
+  b =>
+    (b.status === 'confirmed' || b.status === 'pending') &&
+    new Date(b.startTime) > now
+)
+
+const completedBookings = bookings.filter(
+  b => b.status === 'completed'
+)
+
+const cancelledBookings = bookings.filter(
+  b => b.status === 'cancelled'
+)
+
+const upcomingCount = upcomingBookings.length
+
+const completedCount = completedBookings.length
+
+const learnerCount = new Set(
+  bookings.map(b => b.userId?._id)
+).size
+
+const totalEarnings = bookings.reduce(
+  (acc, curr) =>
+    curr.status === 'completed'
+      ? acc + Number(curr.amount || 0)
+      : acc,
+  0
+)
+const displayedBookings =
+  activeTab === 'upcoming'
+    ? upcomingBookings
+    : activeTab === 'completed'
+    ? completedBookings
+    : activeTab === 'cancelled'
+    ? cancelledBookings
+    : bookings
 
   return (
     <section className="min-h-screen bg-[#fdfaf3] py-12 md:py-24 px-4 sm:px-8 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto lg:mx-35">
         
-        {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-6">
           <div className="w-full md:w-auto">
             <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-3 md:mb-4">MENTOR DESK</p>
@@ -74,7 +109,6 @@ function MentorDashboard({
           </button>
         </div>
 
-        {/* SNAPSHOT STAT CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-16 md:mb-20">
           <StatCard icon={<Calendar size={16} />} label="UPCOMING" value={upcomingCount}  />
           <StatCard icon={<CheckSquare size={16} />} label="COMPLETED" value={completedCount} />
@@ -82,58 +116,128 @@ function MentorDashboard({
           <StatCard icon={<TrendingUp size={16} />} label="EARNINGS" value={`₹${totalEarnings}`} />
         </div>
 
-        {/* BOOKINGS LIST */}
         <div className="space-y-6 md:space-y-8">
           <div className="flex justify-between items-end border-b border-black/5 pb-4">
-            <h2 className="font-serif text-3xl md:text-4xl text-[#1a1a1a]">Upcoming sessions</h2>
-            <button className="text-sm font-medium text-gray-400 hover:text-black">View all &rarr;</button>
-          </div>
+            <div className="flex flex-wrap gap-3">
+  <button
+    onClick={() => setActiveTab('upcoming')}
+    className={`px-5 py-2 rounded-full text-sm transition-all ${
+      activeTab === 'upcoming'
+        ? 'bg-black text-white'
+        : 'bg-white text-gray-500'
+    }`}
+  >
+    Upcoming
+  </button>
 
-          {bookings.length === 0 ? (
+  <button
+    onClick={() => setActiveTab('completed')}
+    className={`px-5 py-2 rounded-full text-sm transition-all ${
+      activeTab === 'completed'
+        ? 'bg-black text-white'
+        : 'bg-white text-gray-500'
+    }`}
+  >
+    Completed
+  </button>
+
+  <button
+    onClick={() => setActiveTab('cancelled')}
+    className={`px-5 py-2 rounded-full text-sm transition-all ${
+      activeTab === 'cancelled'
+        ? 'bg-black text-white'
+        : 'bg-white text-gray-500'
+    }`}
+  >
+    Cancelled
+  </button>
+
+  <button
+    onClick={() => setActiveTab('all')}
+    className={`px-5 py-2 rounded-full text-sm transition-all ${
+      activeTab === 'all'
+        ? 'bg-black text-white'
+        : 'bg-white text-gray-500'
+    }`}
+  >
+    View all
+  </button>
+</div>
+</div>
+       {displayedBookings.length === 0 ? (
             <div className="border-2 border-dashed border-black/5 rounded-4xl md:rounded-4xl p-10 md:p-20 text-center">
               <p className="text-gray-500">No bookings yet. <button onClick={() => navigate('/mentor-availability')} className="text-red-500 font-medium hover:underline">Open more slots</button></p>
             </div>
           ) : (
             <div className="grid gap-4 md:gap-6">
-              {bookings.map((booking) => (
-                <div key={booking._id} className="bg-white/40 border border-black/5 rounded-4xl md:rounded-4xl p-6 md:p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/5">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                    <div className="flex items-center gap-4 md:gap-6">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                        <img 
-                          src={booking.userId?.avatar || 'https://via.placeholder.com/100'} 
-                          className="w-full h-full object-cover" 
-                          alt="learner" 
-                        />
-                      </div>
-                      <div>
-                        <h3 className="font-serif text-xl md:text-2xl text-[#1a1a1a]">{booking.userId?.name}</h3>
-                        <p className="text-gray-500 text-xs md:text-sm">{formatDate(booking.startTime)}</p>
+              {displayedBookings.map((booking) => {
+
+                  const sessionEnded =
+                    new Date(booking.endTime) < new Date()
+
+                  return (
+                    <div key={booking._id} className="bg-white/40 border border-black/5 rounded-4xl md:rounded-4xl p-6 md:p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/5">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+
+                        <div className="flex items-center gap-4 md:gap-6">
+                          <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                            <img
+                              src={booking.userId?.avatar || 'https://via.placeholder.com/100'}
+                              className="w-full h-full object-cover"
+                              alt="learner"
+                            />
+                          </div>
+
+                          <div>
+                            <h3 className="font-serif text-xl md:text-2xl text-[#1a1a1a]">
+                              {booking.userId?.name}
+                            </h3>
+
+                            <p className="text-gray-500 text-xs md:text-sm">
+                              {formatDate(booking.startTime)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-row sm:flex-row items-center justify-between w-full sm:w-auto gap-4 md:gap-8 border-t sm:border-t-0 pt-4 sm:pt-0">
+
+                          <div className="text-left sm:text-right">
+                            <span
+                              className={`px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${
+                                booking.status === 'completed'
+                                  ? 'bg-green-50 text-green-600'
+                                  : booking.status === 'cancelled'
+                                  ? 'bg-red-50 text-red-600'
+                                  : 'bg-orange-50 text-orange-600'
+                              }`}
+                            >
+                              {booking.status}
+                            </span>
+
+                            <p className="font-serif text-lg md:text-xl mt-1 text-[#1a1a1a]">
+                              ₹{booking.amount}
+                            </p>
+                          </div>
+
+                          {booking.status === 'confirmed' && (
+                            <button
+                              disabled={!sessionEnded}
+                              onClick={() => handleMarkCompleted(booking._id)}
+                              className={`px-5 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-medium transition-all ${
+                                sessionEnded
+                                  ? 'bg-[#120f0a] text-white hover:bg-black'
+                                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              {sessionEnded ? 'Mark Completed' : 'Session Active'}
+                            </button>
+                          )}
+
+                        </div>
                       </div>
                     </div>
-                    
-                    <div className="flex flex-row sm:flex-row items-center justify-between w-full sm:w-auto gap-4 md:gap-8 border-t sm:border-t-0 pt-4 sm:pt-0">
-                      <div className="text-left sm:text-right">
-                        <span className={`px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${
-                          booking.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'
-                        }`}>
-                          {booking.status}
-                        </span>
-                        <p className="font-serif text-lg md:text-xl mt-1 text-[#1a1a1a]">₹{booking.amount}</p>
-                      </div>
-                      
-                      {booking.status === 'confirmed' && (
-                        <button 
-                          onClick={() => handleMarkCompleted(booking._id)}
-                          className="bg-[#120f0a] text-white px-5 py-2 md:px-6 md:py-3 rounded-full text-xs md:text-sm font-medium hover:bg-black transition-all"
-                        >
-                          Mark Completed
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  )
+                })}
             </div>
           )}
         </div>

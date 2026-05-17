@@ -19,20 +19,12 @@ const createAvailabilty = asyncHandler(async (req, res) => {
 
     const mentorId = req.user._id
 
-    /*
-        ONLY MENTORS
-    */
-
     if (req.user.role !== "mentor") {
         throw new ApiError(
             403,
             "Only mentors can create availability"
         )
     }
-
-    /*
-        REQUIRED FIELDS
-    */
 
     if (
         dayOfWeek === undefined ||
@@ -46,10 +38,6 @@ const createAvailabilty = asyncHandler(async (req, res) => {
         )
     }
 
-    /*
-        VALIDATE MENTOR ID
-    */
-
     if (
         !mongoose.Types.ObjectId.isValid(mentorId)
     ) {
@@ -59,10 +47,6 @@ const createAvailabilty = asyncHandler(async (req, res) => {
         )
     }
 
-    /*
-        PARSE NUMBERS
-    */
-
     const parsedStartTime = Number(startTime)
 
     const parsedEndTime = Number(endTime)
@@ -70,10 +54,6 @@ const createAvailabilty = asyncHandler(async (req, res) => {
     const parsedSlotDuration = Number(slotDuration)
 
     const parsedBufferTime = Number(bufferTime)
-
-    /*
-        VALIDATION
-    */
 
     if (parsedStartTime >= parsedEndTime) {
         throw new ApiError(
@@ -88,6 +68,35 @@ const createAvailabilty = asyncHandler(async (req, res) => {
             "Slot duration must be greater than 0"
         )
     }
+        const totalWindow =
+
+            parsedEndTime -
+            parsedStartTime
+
+        if (
+            parsedSlotDuration >
+            totalWindow
+        ) {
+
+            throw new ApiError(
+
+                400,
+
+                "Slot duration exceeds availability window"
+            )
+        }
+        if (
+            parsedStartTime < 0 ||
+            parsedEndTime > 1440
+        ) {
+
+            throw new ApiError(
+
+                400,
+
+                "Invalid time range"
+            )
+        }
 
     if (parsedBufferTime < 0) {
         throw new ApiError(
@@ -96,28 +105,31 @@ const createAvailabilty = asyncHandler(async (req, res) => {
         )
     }
 
-    /*
-        DUPLICATE CHECK
-    */
+        const overlappingAvailability =
+            await Availability.findOne({
 
-    const existingAvailability =
-        await Availability.findOne({
-            mentorId,
-            dayOfWeek,
-            startTime: parsedStartTime,
-            endTime: parsedEndTime
-        })
+                mentorId,
 
-    if (existingAvailability) {
-        throw new ApiError(
-            409,
-            "Availability already exists"
-        )
-    }
+                dayOfWeek,
 
-    /*
-        CREATE
-    */
+                startTime: {
+                    $lt: parsedEndTime
+                },
+
+                endTime: {
+                    $gt: parsedStartTime
+                }
+            })
+
+        if (overlappingAvailability) {
+
+            throw new ApiError(
+
+                409,
+
+                "Availability window overlaps with existing schedule"
+            )
+        }
 
     const availability =
         await Availability.create({
@@ -387,11 +399,33 @@ const getAvailableSlots = asyncHandler(async(req,res) => {
 
 })
 
+const getCurrentMentorAvailability = asyncHandler(async(req,res)=>{
+
+   const availability =
+   await Availability.find({
+
+      mentorId: req.user._id
+
+   })
+
+   return res.status(200).json(
+
+      new ApiResponse(
+
+         200,
+
+         availability,
+
+         "Availability fetched successfully"
+      )
+   )
+})
 
 export {
     createAvailabilty,
     getMentorAvailability,
     updateAvailability,
     deleteAvailability,
-    getAvailableSlots
+    getAvailableSlots,
+    getCurrentMentorAvailability
 }

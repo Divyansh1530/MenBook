@@ -50,14 +50,14 @@ function NavBar({
   };
 
   // Helper functions for dynamic routing based on role
-  const getDashboardLink = () => user?.role === 'mentor' ? '/mentor-dashboard' : '/user-dashboard';
+  const getDashboardLink = () => '/dashboard'
   const getProfileLink = () => '/profile'; // Both roles use the same /profile route
 
   return (
     <nav className="sticky top-0 w-full bg-[#fdfaf3]/90 backdrop-blur-sm border-b border-black/5 px-6 md:px-12 z-9999">
       <div className="max-w-7xl mx-auto flex justify-between h-16 items-center">
         
-        {/* Brand */}
+
         <Link to="/" className="flex items-center gap-3">
           <div className="w-9 h-9 bg-[#120f0a] rounded-lg flex items-center justify-center">
             <span className="text-[#fdfaf3] font-serif font-bold text-xl">M</span>
@@ -65,12 +65,11 @@ function NavBar({
           <span className="hero-heading font-serif text-xl tracking-tighter text-[#1a1a1a] transform scale-y-[1.2] origin-left">MenBook</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-10">
           <Link to="/" className="text-[0.95rem] font-medium text-gray-700 hover:text-black transition-colors">Home</Link>
           <Link to="/browse-mentors" className="text-[0.95rem] font-medium text-gray-700 hover:text-black transition-colors">Browse mentors</Link>
           
-          {/* MENTOR ONLY LINK: Show Availability in the main Navbar */}
+
           {user?.role === 'mentor' && (
             <Link to="/mentor-availability" className="flex items-center gap-1.5 text-[0.95rem] font-medium text-gray-700 hover:text-black transition-colors">
               <Calendar size={16} />
@@ -79,22 +78,25 @@ function NavBar({
           )}
         </div>
 
-        {/* Auth / Profile Section */}
+
         <div className="hidden md:flex items-center gap-8">
           {user ? (
             <div className="relative" ref={profileRef}>
-              {/* Trigger Button */}
               <button 
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-3 pl-1 pr-4 py-1 bg-white/50 border border-black/5 rounded-full hover:bg-white transition-all shadow-sm"
               >
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500 font-serif">
-                  {user.name[0]}
+                <div >
+                  <img 
+                  src={user.avatar} 
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  />
+                  
                 </div>
                 <span className="text-sm font-medium text-gray-800">{user.name}</span>
               </button>
 
-              {/* Profile Dropdown Div (Matching image_775580.png) */}
               {profileOpen && (
                 <div className="absolute right-0 mt-3 w-64 bg-[#fdfaf3] border border-black/5 rounded-[28px] shadow-2xl p-6 flex flex-col gap-1">
                   <div className="pb-4 border-b border-black/5 mb-2">
@@ -152,13 +154,11 @@ function NavBar({
           )}
         </div>
 
-        {/* Mobile Toggle */}
         <button className="md:hidden p-2" onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden bg-[#fdfaf3] border-t border-black/5 p-6 space-y-4 pb-10">
           {user && (
@@ -201,7 +201,7 @@ function NavBar({
           
           {user && (
             <>
-              {/* Show Availability here for mobile if Mentor */}
+
               {user.role === 'mentor' && (
                 <Link to="/mentor-availability" className="block text-lg font-medium text-gray-800" onClick={() => setMenuOpen(false)}>Availability</Link>
               )}

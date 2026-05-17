@@ -43,7 +43,6 @@ function Login({
     <div className="min-h-screen bg-[#fdfaf3] flex flex-col items-center justify-center pb-15 md:pt-5 p-6">
       <div className="w-full max-w-md">
         
-        {/* Header Section */}
         <div className="mb-10">
           <h1 className="hero-heading font-serif text-4xl text-[#1a1a1a] mb-3 tracking-tight transform scale-y-[1.4] origin-left">
             Welcome back.
@@ -54,7 +53,6 @@ function Login({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email Input */}
           <div>
             <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">
               EMAIL
@@ -69,7 +67,6 @@ function Login({
             />
           </div>
 
-          {/* Password Input */}
           <div>
             <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">
               PASSWORD
@@ -90,7 +87,6 @@ function Login({
           Continue With Google
           </a>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -100,7 +96,6 @@ function Login({
           </button>
         </form>
 
-        {/* Footer Link */}
         <p className="text-center text-gray-600 mt-8 font-sans">
           New here? <Link to="/signup" className="text-black font-semibold border-b border-black">Create an account</Link>
         </p>

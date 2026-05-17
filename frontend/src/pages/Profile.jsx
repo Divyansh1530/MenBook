@@ -8,7 +8,8 @@ import {
   FiBriefcase, 
   FiAward, 
   FiDollarSign, 
-  FiFileText 
+  FiFileText, 
+  FiTag
 } from 'react-icons/fi';
 
 function Profile() {
@@ -19,6 +20,7 @@ function Profile() {
     name: '',
     bio: '',
     expertise: '',
+    title:'',
     pricing: '',
     experience: '',
     linkedin: '',
@@ -41,6 +43,7 @@ function Profile() {
       setFormData({
         name: currentUser.name || '',
         bio: currentUser.mentorProfile?.bio || '',
+        title:currentUser.mentorProfile?.title || '',
         expertise: currentUser.mentorProfile?.expertise?.join(', ') || '',
         pricing: currentUser.mentorProfile?.pricing || '',
         experience: currentUser.mentorProfile?.experience || '',
@@ -66,6 +69,7 @@ function Profile() {
       const payload = { name: formData.name };
       if (user.role === 'mentor') {
         payload.bio = formData.bio;
+        payload.title = formData.title;
         payload.expertise = formData.expertise.split(',').map(item => item.trim());
         payload.pricing = formData.pricing;
         payload.experience = formData.experience;
@@ -121,7 +125,6 @@ function Profile() {
     <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto px-30">
         
-        {/* Header */}
         <header className="mb-16">
           <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-4">ACCOUNT</p>
           <h1 className="hero-heading font-serif text-6xl text-[#1a1a1a] mb-6 tracking-tighter transform scale-y-[1.2] origin-left">Your profile</h1>
@@ -130,10 +133,8 @@ function Profile() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
-          {/* LEFT COLUMN: Identity & Security */}
           <div className="lg:col-span-4 space-y-8">
             
-            {/* Identity Card */}
             <div className="bg-white/40 border border-black/15 rounded-[40px] p-10 text-center flex flex-col items-center">
               <div className="relative group mb-6">
                 <div className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden border-4 border-white shadow-sm flex items-center justify-center">
@@ -155,7 +156,6 @@ function Profile() {
               </span>
             </div>
 
-            {/* Password Card (Matches image_774311.png) */}
             <div className="bg-white/40 border border-black/15 rounded-[40px] py-6 px-10">
               <h3 className="hero-heading font-serif text-xl text-[#1a1a1a] mb-8 flex items-center gap-3 transform scale-y-[1.2] origin-left tracking-tight">
                 <FiLock size={20} 
@@ -175,7 +175,6 @@ function Profile() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Details Form */}
           <div className="lg:col-span-8 bg-white/40 border border-black/15 rounded-[40px] p-12">
             <h3 className="font-serif text-3xl text-[#1a1a1a] mb-10">Personal details</h3>
             
@@ -197,6 +196,7 @@ function Profile() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <InputGroup icon={<FiTag size={14}/>} label="TITLE" name="title" placeholder="Therapist" value={formData.title} onChange={handleChange} />
                   <InputGroup icon={<FiBriefcase size={14}/>} label="EXPERIENCE" name="experience" placeholder="e.g. 8 years at Google" value={formData.experience} onChange={handleChange} />
                   <InputGroup icon={<FiLinkedin size={14}/>} label="LINKEDIN" name="linkedin" placeholder="https://linkedin.com/in/..." value={formData.linkedin} onChange={handleChange} />
                   <InputGroup icon={<FiAward size={14}/>} label="EXPERTISE" name="expertise" placeholder="React, System Design, Career" value={formData.expertise} onChange={handleChange} />

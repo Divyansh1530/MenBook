@@ -18,10 +18,12 @@ function TopMentors() {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/v1.1/users/mentors', {
+        setLoading(true)
+        const response = await axios.get('http://localhost:8000/api/v1.1/users/mentors?page=1&limit=6', {
           params: { search }
         });
-        setMentors(response.data.data);
+        setMentors(response.data.data.mentors);
+        // setTotalPages(response.data.data.totalPages)
       } catch (error) {
         console.log(error);
       } finally {
@@ -43,7 +45,6 @@ function TopMentors() {
     <section className="bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
             <p className="text-[11px] font-normal tracking-[0.2em] text-black/80 uppercase mb-4">
@@ -54,14 +55,14 @@ function TopMentors() {
             </h2>
           </div>
           <button 
-            onClick={() => navigate('/mentors')}
+            onClick={() => navigate('/browse-mentors')}
             className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-black transition-colors"
           >
             See all <ArrowRight size={16} />
           </button>
         </div>
 
-        {/* Mentor Grid */}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mentors.map((mentor) => (
             <div
@@ -69,12 +70,12 @@ function TopMentors() {
               className="bg-white/40 border border-black/20 rounded-4xl p-8 flex flex-col justify-between transition-all duration-300 shadow-xl hover:bg-white hover:shadow-2xl hover:shadow-black/5"
             >
               <div>
-                {/* Header: Avatar, Name, and Rating */}
+
                 <div className="flex justify-between items-start mb-6">
                   <div className="flex gap-4 items-center">
                     <img
                       src={
-                        mentor.avatar
+                        mentor.avatar || 'https://via.placeholder.com/100'
                       }
                       alt={mentor.name}
                       className='w-14 h-14 rounded-2xl object-cover border border-black/10'
@@ -90,16 +91,15 @@ function TopMentors() {
                   </div>
                   <div className="flex items-center gap-1 text-sm font-bold text-[#1a1a1a]">
                     <Star size={14} className="fill-red-500 text-red-500" />
-                    {mentor.mentorProfile?.avgRating || "5.0"}
+                    {mentor.mentorProfile?.avgRating || "New"}
                   </div>
                 </div>
 
-                {/* Bio */}
                 <p className="text-gray-600 text-[15px] leading-relaxed mb-4 line-clamp-3">
                   {mentor.mentorProfile?.bio || "Expert guidance at the intersection of clarity and professional craft."}
                 </p>
 
-                {/* Tags */}
+
                 <div className="flex flex-wrap gap-2 mb-4">
                   {mentor.mentorProfile?.expertise?.slice(0, 2).map((exp, i) => (
                     <span key={i} className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
@@ -109,7 +109,7 @@ function TopMentors() {
                 </div>
               </div>
 
-              {/* Footer: Pricing and CTA */}
+
               <div className="pt-6 border-t border-black/15 flex items-center justify-between">
                 <div>
                   <div className="flex items-baseline gap-1">
@@ -117,7 +117,7 @@ function TopMentors() {
                     <span className="text-xs text-gray-400">/session</span>
                   </div>
                   <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1">
-                    {Math.floor(Math.random() * 500) + 100} sessions
+                    1-on-1 mentoring
                   </p>
                 </div>
                 <button

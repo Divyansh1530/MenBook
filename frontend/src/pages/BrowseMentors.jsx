@@ -6,6 +6,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 function BrowseMentors() {
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [searchParams, setSearchParams] = useSearchParams();
   const [specialization,setSpecialization] = useState("")
   const [minPrice,setMinPrice] = useState("")
@@ -34,6 +36,7 @@ function BrowseMentors() {
   const timer = setTimeout(() => {
 
     setDebouncedSearch(search)
+    
 
   }, 500)
 
@@ -43,22 +46,41 @@ function BrowseMentors() {
   }
 
 }, [search])
+useEffect(() => {
+
+  setPage(1)
+
+}, [
+  debouncedSearch,
+  specialization,
+  minPrice,
+  rating,
+  sortBy
+])
 
   useEffect(() => {
     const fetchMentors = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:8000/api/v1.1/users/mentors', {
-          params: { 
-            search:debouncedSearch,
-            specialization,
-            minPrice,
-            rating,
-            sortBy,
-            order:"desc"
-           }
-        });
-        setMentors(response.data.data);
+        const response = await axios.get(
+            'http://localhost:8000/api/v1.1/users/mentors',
+            {
+              params: {
+                page,
+                limit: 9,
+                search: debouncedSearch,
+                specialization,
+                minPrice,
+                rating,
+                sortBy,
+                order: "desc"
+              }
+            }
+          )
+
+          setMentors(response.data.data.mentors)
+
+          setTotalPages(response.data.data.totalPages)
       } catch (error) {
         console.log(error);
       } finally {
@@ -71,7 +93,8 @@ function BrowseMentors() {
     specialization,
     minPrice,
     rating,
-    sortBy
+    sortBy,
+    page
   ]);
 
   const handleCategoryClick = (catName) => {
@@ -84,17 +107,10 @@ function BrowseMentors() {
     }
   };
 
-  const getInitials = (name) => name.split(' ').map(n => n[0]).join('').toUpperCase();
-  const getAvatarBg = (id) => {
-    const colors = ['bg-orange-200', 'bg-green-200', 'bg-blue-200', 'bg-rose-200', 'bg-yellow-200'];
-    return colors[id.charCodeAt(id.length - 1) % colors.length];
-  };
-
   return (
     <div className="bg-[#fdfaf3] min-h-screen pt-20 pb-24 px-4 sm:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header Section - Mobile Responsive Text */}
         <header className="mb-10 sm:mb-12 text-left">
           <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-3">
             DIRECTORY
@@ -107,11 +123,9 @@ function BrowseMentors() {
           </p>
         </header>
 
-        {/* Search and Filters */}
-        {/* Search and Filters */}
 <div className="mb-12 sm:mb-16 space-y-6">
 
-  {/* Search Bar */}
+
   <div className="relative w-full sm:max-w-lg">
 
     <Search
@@ -130,10 +144,9 @@ function BrowseMentors() {
     />
   </div>
 
-  {/* FILTER CONTROLS */}
+
   <div className="flex flex-col lg:flex-row gap-4">
 
-    {/* MIN PRICE */}
     <div className="flex-1">
 
       <label className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2 block">
@@ -154,7 +167,6 @@ function BrowseMentors() {
 
     </div>
 
-    {/* RATING */}
     <div className="flex-1">
 
       <label className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2 block">
@@ -191,7 +203,6 @@ function BrowseMentors() {
 
     </div>
 
-    {/* SORT */}
     <div className="flex-1">
 
       <label className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-2 block">
@@ -230,7 +241,6 @@ function BrowseMentors() {
 
   </div>
 
-  {/* SPECIALIZATION CHIPS */}
   <div className="flex flex-wrap gap-2 sm:gap-3 overflow-visible">
 
     {categories.map((cat) => (
@@ -241,8 +251,8 @@ function BrowseMentors() {
           handleCategoryClick(cat.name)
         }
         className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full border text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap ${
-          (query === cat.name ||
-          (cat.name === 'All' && !query))
+          (search === cat.name ||
+          (cat.name === 'All' && !search))
             ? 'bg-[#120f0a] text-white border-[#120f0a]'
             : 'bg-white/50 border-black/5 text-gray-600 hover:border-black/20 hover:bg-white'
         }`}
@@ -265,21 +275,28 @@ function BrowseMentors() {
   </div>
 
 </div>
-        {/* Results Grid - Column adjustments for mobile */}
+        
         {loading ? (
           <div className="text-center py-20 font-serif text-2xl text-gray-400 animate-pulse">Searching database...</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <>
+          <div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {mentors.length > 0 ? mentors.map((mentor) => (
               <div
+                onClick={() => navigate(`/mentors/${mentor._id}`)}
                 key={mentor._id}
-                className="bg-white/40 border border-black/5 rounded-[28px] sm:rounded-4xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-black/5"
+                  className="bg-white/40 border border-black/5 rounded-[28px] sm:rounded-4xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-black/5 cursor-pointer"
               >
                 <div>
                   <div className="flex justify-between items-start mb-5 sm:mb-6">
                     <div className="flex gap-3 sm:gap-4 items-center">
-                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-serif text-base sm:text-lg text-black/70 ${getAvatarBg(mentor._id)}`}>
-                        {getInitials(mentor.name)}
+                      <div >
+                        <img 
+                        src={mentor.avatar || 'https://via.placeholder.com/100'} 
+                        alt={mentor.name}
+                        className="w-14 h-14 rounded-2xl object-cover border border-black/10"
+                        />
                       </div>
                       <div>
                         <h3 className="font-serif text-lg sm:text-xl text-[#1a1a1a] leading-tight">{mentor.name}</h3>
@@ -288,7 +305,7 @@ function BrowseMentors() {
                     </div>
                     <div className="flex items-center gap-1 text-xs sm:text-sm font-bold text-[#1a1a1a]">
                       <Star size={12} className="fill-red-500 text-red-500 sm:w-3.5" />
-                      {mentor.mentorProfile?.avgRating || "5.0"}
+                      {mentor.mentorProfile?.avgRating || "New"}
                     </div>
                   </div>
 
@@ -312,7 +329,7 @@ function BrowseMentors() {
                       <span className="text-[10px] sm:text-xs text-gray-400">/session</span>
                     </div>
                     <p className="text-[9px] sm:text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1">
-                      {Math.floor(Math.random() * 50) + 10} sessions
+                      1-on-1 mentoring
                     </p>
                   </div>
                   <button
@@ -324,12 +341,41 @@ function BrowseMentors() {
                 </div>
               </div>
             )) : (
-              <div className="col-span-full text-center py-20 text-gray-400 font-serif text-xl">No mentors found.</div>
+              <div className="col-span-full text-center py-20 text-gray-400 font-serif text-xl">No mentors found.
+              </div>
             )}
           </div>
+          {totalPages > 1 && (
+  <div className="flex items-center justify-center gap-3 mt-16">
+
+    <button
+      disabled={page === 1}
+      onClick={() => setPage(prev => prev - 1)}
+      className="px-5 py-2 rounded-full border border-black/10 bg-white disabled:opacity-40"
+    >
+      Prev
+    </button>
+
+    <span className="text-sm text-gray-500">
+      Page {page} of {totalPages}
+    </span>
+
+    <button
+      disabled={page === totalPages}
+      onClick={() => setPage(prev => prev + 1)}
+      className="px-5 py-2 rounded-full border border-black/10 bg-white disabled:opacity-40"
+    >
+      Next
+    </button>
+
+  </div>
+)}
+</>
         )}
       </div>
+      
     </div>
+    
   );
 }
 

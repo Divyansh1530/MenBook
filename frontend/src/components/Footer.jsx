@@ -6,7 +6,6 @@ function Footer() {
     <footer className="bg-[#fdfaf3] py-24 px-6 md:px-12 lg:px-24 border-t border-black/5">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-24">
         
-        {/* Brand and Tagline Section */}
         <div className="md:col-span-6 flex flex-col items-start">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-9 h-9 bg-[#120f0a] rounded-lg flex items-center justify-center">
@@ -26,7 +25,6 @@ function Footer() {
           </p>
         </div>
 
-        {/* Links: Explore */}
         <div className="md:col-span-3">
           <h4 className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-8">
             EXPLORE
@@ -50,7 +48,6 @@ function Footer() {
           </ul>
         </div>
 
-        {/* Links: Company */}
         <div className="md:col-span-3">
           <h4 className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-8">
             COMPANY

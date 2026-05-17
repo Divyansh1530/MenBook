@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 function Signup() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const roleFromURL = searchParams.get("role")
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    role: "user", // "user" = learner, "mentor" = mentor
+    role: roleFromURL || "user",
+    title:"",
     bio: "",
     expertise: "",
     pricing: ""
@@ -32,6 +37,7 @@ function Signup() {
       data.append("role", formData.role)
 
       if (formData.role === "mentor") {
+        data.append("title", formData.title)
         data.append("bio", formData.bio)
         data.append("expertise", JSON.stringify(formData.expertise.split(",").map(i => i.trim())))
         data.append("pricing", Number(formData.pricing))
@@ -54,7 +60,6 @@ function Signup() {
     <div className="min-h-screen bg-[#fdfaf3] flex flex-col items-center justify-center py-20 px-6">
       <div className="w-full max-w-md">
         
-        {/* Header Section */}
         <div className="text-center mb-10">
           <h1 className="hero-heading font-serif text-left text-4xl text-[#1a1a1a] mb-3 tracking-tighter transform scale-y-[1.3] origin-left">
             Create your account.
@@ -65,7 +70,6 @@ function Signup() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Full Name */}
           <div>
             <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">
               FULL NAME
@@ -80,7 +84,6 @@ function Signup() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">
               EMAIL
@@ -95,7 +98,6 @@ function Signup() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">
               PASSWORD
@@ -110,7 +112,6 @@ function Signup() {
             />
           </div>
 
-          {/* Role Toggle Boxes */}
           <div>
             <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-3">
               I'M JOINING AS
@@ -143,9 +144,22 @@ function Signup() {
             </div>
           </div>
 
-          {/* Conditional Mentor Fields */}
           {formData.role === "mentor" && (
             <div className="space-y-6 pt-2 border-t border-black/5">
+              <div>
+                <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">
+                  TITLE
+                </label>
+
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  placeholder="Frontend Engineer"
+                  className="w-full bg-white/40 border border-black/10 rounded-2xl px-5 py-4 outline-none focus:border-black/30 transition-all font-sans"
+                />
+              </div>
                <div>
                 <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">BIO</label>
                 <textarea name="bio" value={formData.bio} onChange={handleChange} className="w-full bg-white/40 border border-black/10 rounded-2xl px-5 py-4 h-24 outline-none focus:border-black/30 transition-all font-sans" />
@@ -163,7 +177,6 @@ function Signup() {
             </div>
           )}
 
-          {/* Avatar Upload */}
           <div>
             <label className="block text-[10px] font-normal tracking-[0.15em] text-black/50 uppercase mb-2">AVATAR IMAGE</label>
             <input
@@ -173,7 +186,6 @@ function Signup() {
             />
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -183,7 +195,6 @@ function Signup() {
           </button>
         </form>
 
-        {/* Footer Link */}
         <p className="text-center text-gray-600 mt-8 font-sans">
           Already have one? <Link to="/login" className="text-black font-semibold border-b border-black">Log in</Link>
         </p>

@@ -12,6 +12,7 @@ function UserDashboard({
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
+  const [activeTab, setActiveTab] = useState('upcoming')
 
   useEffect(() => {
     fetchBookings()
@@ -53,15 +54,48 @@ function UserDashboard({
     </div>
   )
 
-  const upcomingCount = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length
-  const completedCount = bookings.filter(b => b.status === 'completed').length
-  const totalInvested = bookings.reduce((acc, curr) => acc + (curr.paymentStatus === 'completed' ? curr.amount : 0), 0)
+  const upcomingBookings = bookings.filter(
+  booking =>
+    (booking.status === 'confirmed' ||
+    booking.status === 'pending') &&
+    new Date(booking.startTime) > new Date()
+)
+
+const completedBookings = bookings.filter(
+  booking => booking.status === 'completed'
+)
+
+const cancelledBookings = bookings.filter(
+  booking => booking.status === 'cancelled'
+)
+
+const upcomingCount = upcomingBookings.length
+
+const completedCount = completedBookings.length
+
+const cancelledCount = cancelledBookings.length
+
+const displayedBookings =
+  activeTab === 'upcoming'
+    ? upcomingBookings
+    : activeTab === 'completed'
+    ? completedBookings
+    : activeTab === 'cancelled'
+    ? cancelledBookings
+    : bookings
+
+const totalInvested = bookings.reduce(
+  (acc, curr) =>
+    curr.status === 'cancelled' || curr.status === "confirmed"
+      ? acc + Number(curr.amount || 0)
+      : acc,
+  0
+)
 
   return (
     <section className="min-h-screen bg-[#fdfaf3] py-12 md:py-24 px-4 sm:px-8 md:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto xl:mx-35">
         
-        {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-6">
           <div className="w-full">
             <p className="text-[10px] font-normal tracking-[0.2em] text-black/50 uppercase mb-3 md:mb-4">WELCOME BACK</p>
@@ -79,26 +113,73 @@ function UserDashboard({
         </div>
 
         {/* SNAPSHOT STAT CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-16 md:mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-16 md:mb-20">
           <StatCard icon={<Calendar size={18} />} label="UPCOMING SESSIONS" value={upcomingCount} />
           <StatCard icon={<CheckSquare size={18} />} label="COMPLETED" value={completedCount} />
+          <StatCard icon={<X size={18} />}label="CANCELLED" value={cancelledCount} />
           <StatCard icon={<TrendingUp size={18} />} label="INVESTED" value={`₹${totalInvested}`} />
         </div>
 
-        {/* BOOKINGS LIST */}
         <div className="space-y-6 md:space-y-8">
-          <div className="flex justify-between items-end border-b border-black/5 pb-4">
-            <h2 className="font-serif text-3xl md:text-4xl text-[#1a1a1a]">Upcoming</h2>
-            <Link to="/mentors" className="text-sm font-medium text-gray-400 hover:text-black">View all &rarr;</Link>
-          </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-black/5 pb-6">
 
-          {bookings.length === 0 ? (
+  <div className="flex flex-wrap gap-3">
+
+    <button
+      onClick={() => setActiveTab('upcoming')}
+      className={`px-5 py-2 rounded-full text-sm transition-all ${
+        activeTab === 'upcoming'
+          ? 'bg-[#120f0a] text-white'
+          : 'bg-white text-gray-500'
+      }`}
+    >
+      Upcoming
+    </button>
+
+    <button
+      onClick={() => setActiveTab('completed')}
+      className={`px-5 py-2 rounded-full text-sm transition-all ${
+        activeTab === 'completed'
+          ? 'bg-[#120f0a] text-white'
+          : 'bg-white text-gray-500'
+      }`}
+    >
+      Completed
+    </button>
+
+    <button
+      onClick={() => setActiveTab('cancelled')}
+      className={`px-5 py-2 rounded-full text-sm transition-all ${
+        activeTab === 'cancelled'
+          ? 'bg-[#120f0a] text-white'
+          : 'bg-white text-gray-500'
+      }`}
+    >
+      Cancelled
+    </button>
+
+    <button
+      onClick={() => setActiveTab('all')}
+      className={`px-5 py-2 rounded-full text-sm transition-all ${
+        activeTab === 'all'
+          ? 'bg-[#120f0a] text-white'
+          : 'bg-white text-gray-500'
+      }`}
+    >
+      View all
+    </button>
+
+  </div>
+
+</div>
+
+          {displayedBookings.length === 0 ? (
             <div className="border-2 border-dashed border-black/5 rounded-[2.5rem] md:rounded-4xl p-10 md:p-20 text-center">
               <p className="text-gray-500">Nothing scheduled yet. <Link to="/mentors" className="text-red-500 font-medium hover:underline">Browse mentors</Link></p>
             </div>
           ) : (
             <div className="grid gap-4 md:gap-6">
-              {bookings.map((booking) => (
+              {displayedBookings.map((booking) => (
                 <div key={booking._id} className="bg-white/40 border border-black/5 rounded-4xl md:rounded-4xl p-6 md:p-8 transition-all hover:bg-white hover:shadow-xl hover:shadow-black/5">
                   <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                     <div className="flex items-center gap-4 md:gap-6">
@@ -116,7 +197,11 @@ function UserDashboard({
                     <div className="flex flex-row md:flex-row items-center justify-between w-full lg:w-auto gap-4 md:gap-8 border-t lg:border-t-0 pt-4 lg:pt-0">
                       <div className="text-left md:text-right">
                         <span className={`px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${
-                          booking.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'
+                         booking.status === 'completed'
+                            ? 'bg-green-50 text-green-600'
+                            : booking.status === 'cancelled'
+                            ? 'bg-red-50 text-red-500'
+                            : 'bg-orange-50 text-orange-600'
                         }`}>
                           {booking.status}
                         </span>
@@ -139,7 +224,6 @@ function UserDashboard({
           )}
         </div>
 
-        {/* REVIEW MODAL */}
         {selectedBooking && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-100 p-4">
             <div className="bg-[#fdfaf3] rounded-[2.5rem] md:rounded-[40px] w-full max-w-xl p-8 md:p-12 relative border border-black/5 shadow-2xl">

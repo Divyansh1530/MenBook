@@ -8,23 +8,15 @@ import {
   Route
 } from 'react-router-dom'
 
-/*
-    PAGES
-*/
 
 import Signup from './pages/Signup'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Mentor from './pages/Mentor'
-import UserDashboard from './pages/UserDashboard'
-import MentorDashboard from './pages/MentorDashboard'
+import Dashboard from './pages/Dashboard'
 import MentorAvailability from './pages/MentorAvailability'
 import Profile from './pages/Profile'
 import BrowseMentors from './pages/BrowseMentors'
-
-/*
-    COMPONENTS
-*/
 
 import NavBar from './components/Navbar'
 import Footer from './components/Footer'
@@ -36,10 +28,6 @@ function App() {
   const [user, setUser] = useState(null)
 
   const [loading, setLoading] = useState(true)
-
-  /*
-      FETCH CURRENT USER
-  */
 
   useEffect(() => {
 
@@ -68,10 +56,6 @@ function App() {
     fetchCurrentUser()
 
   }, [])
-
-  /*
-      LOADING
-  */
 
   if (loading) {
 
@@ -109,59 +93,28 @@ function App() {
           />
 
           <Route
-            path="/mentors/:id"
-            element={
-              <Mentor
-                user={user}
-              />
-            }
-          />
-
-          <Route
             path="/browse-mentors"
             element={<BrowseMentors />}
           />
 
-          {/* USER DASHBOARD */}
-
           <Route
-            path="/user-dashboard"
-            element={
-              <ProtectedRoute
-                user={user}
-                allowedRole="user"
-              >
-                <UserDashboard
-                user={user}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* MENTOR DASHBOARD */}
-
-         <Route
-            path="/mentor-dashboard"
-            element={
-              <ProtectedRoute
-                user={user}
-                allowedRole="mentor"
-              >
-                <MentorDashboard
+              path="/dashboard"
+              element={
+                <ProtectedRoute
                   user={user}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* PROFILE */}
+                >
+                  <Dashboard
+                    user={user}
+                  />
+                </ProtectedRoute>
+              }
+            />
 
           <Route
             path="/profile"
             element={
               <ProtectedRoute
                 user={user}
-                allowedRole={user?.role}
               >
                 <Profile
                   user={user}
@@ -171,21 +124,18 @@ function App() {
             }
           />
 
-          {/* MENTOR AVAILABILITY */}
-
           <Route
             path="/mentor-availability"
             element={
               <ProtectedRoute
                 user={user}
-                allowedRole="mentor"
               >
-                <MentorAvailability />
+                <MentorAvailability
+                user={user}
+                />
               </ProtectedRoute>
             }
           />
-
-          {/* AUTH */}
 
           <Route
             path="/signup"

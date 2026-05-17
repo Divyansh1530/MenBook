@@ -2,9 +2,6 @@ import cron from "node-cron"
 import { Booking } from "../models/booking.model.js"
 import sendEmail from "../utils/sendEmail.js"
 
-/*
-    CANCEL EXPIRED BOOKINGS
-*/
 
 cron.schedule("*/1 * * * *", async () => {
 
@@ -43,9 +40,6 @@ cron.schedule("*/1 * * * *", async () => {
 
 })
 
-/*
-    AUTO COMPLETE BOOKINGS
-*/
 
 cron.schedule("*/5 * * * *", async () => {
 
@@ -83,24 +77,12 @@ cron.schedule("*/5 * * * *", async () => {
 
     try {
 
-        /*
-            CURRENT TIME
-        */
-
         const now = new Date()
-
-        /*
-            30 MINUTES LATER
-        */
 
         const thirtyMinutesLater =
             new Date(
                 Date.now() + 30 * 60 * 1000
             )
-
-        /*
-            FIND BOOKINGS
-        */
 
         const upcomingBookings =
             await Booking.find({
@@ -116,15 +98,7 @@ cron.schedule("*/5 * * * *", async () => {
 
             })
 
-        /*
-            LOOP BOOKINGS
-        */
-
         for (const booking of upcomingBookings) {
-
-            /*
-                GET USER + MENTOR
-            */
 
             const user =
                 await User.findById(
@@ -135,10 +109,6 @@ cron.schedule("*/5 * * * *", async () => {
                 await User.findById(
                     booking.mentorId
                 )
-
-            /*
-                SEND EMAIL TO USER
-            */
 
             await sendEmail({
 
@@ -167,10 +137,6 @@ cron.schedule("*/5 * * * *", async () => {
                 `
             })
 
-            /*
-                SEND EMAIL TO MENTOR
-            */
-
             await sendEmail({
 
                 to: mentor.email,
@@ -192,11 +158,6 @@ cron.schedule("*/5 * * * *", async () => {
                     </a>
                 `
             })
-
-            /*
-                PREVENT DUPLICATES
-            */
-
             booking.reminderSent = true
 
             await booking.save()

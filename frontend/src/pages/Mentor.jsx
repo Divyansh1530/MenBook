@@ -19,6 +19,7 @@ function Mentor({
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [slots, setSlots] = useState([]);
   const [dateRange, setDateRange] = useState([]);
+  const [processingPayment, setProcessingPayment] = useState(false)
 
   useEffect(() => {
 
@@ -108,14 +109,33 @@ function Mentor({
         name: 'MenBook',
         order_id: order.id,
         handler: async function (res) {
-          await axios.post('http://localhost:8000/api/v1.1/payment/verify-payment', {
-            razorpay_order_id: res.razorpay_order_id,
-            razorpay_payment_id: res.razorpay_payment_id,
-            razorpay_signature: res.razorpay_signature
-          }, { withCredentials: true });
-          alert('Payment successful');
-          setShowBookingModal(false);
-        },
+            try {
+
+              setProcessingPayment(true)
+
+              await axios.post(
+                'http://localhost:8000/api/v1.1/payment/verify-payment',
+                {
+                  razorpay_order_id: res.razorpay_order_id,
+                  razorpay_payment_id: res.razorpay_payment_id,
+                  razorpay_signature: res.razorpay_signature
+                },
+                { withCredentials: true }
+              )
+
+              setShowBookingModal(false)
+
+              alert('Payment successful')
+
+            } catch (error) {
+
+              alert('Payment verification failed')
+
+            } finally {
+
+              setProcessingPayment(false)
+            }
+          },
         theme: { color: '#e94e36' }
       };
       new window.Razorpay(options).open();
@@ -127,12 +147,11 @@ function Mentor({
   return (
     <section className="min-h-screen bg-[#fdfaf3] py-24 px-6 relative">
       <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
+
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-400 hover:text-black mb-12 transition-colors">
           <ArrowLeft size={18} /> Back to mentors
         </button>
 
-        {/* MENTOR PROFILE UI */}
         <div className="flex flex-col md:flex-row gap-12 items-start mb-20">
           <div className="w-48 h-48 rounded-[40px] bg-orange-100 shrink-0 overflow-hidden border-4 border-white shadow-sm">
             <img src={mentor.avatar} alt={mentor.name} className="w-full h-full object-cover" />
@@ -157,7 +176,6 @@ function Mentor({
           </div>
         </div>
 
-        {/* REVIEWS SECTION */}
         <div className="border-t border-black/5 pt-16">
           <h2 className="font-serif text-3xl mb-10">Community feedback</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -176,13 +194,12 @@ function Mentor({
           </div>
         </div>
 
-        {/* --- THE MODAL WITH BLURRY BACKGROUND --- */}
+
         {showBookingModal && (
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-md px-4 animate-in fade-in duration-300">
-            {/* Clickable area to close modal */}
+
             <div className="absolute inset-0" onClick={() => setShowBookingModal(false)} />
 
-            {/* Modal Card */}
             <div className="relative bg-white w-full max-w-125 rounded-[40px] p-10 shadow-2xl scale-in-center">
               <button onClick={() => setShowBookingModal(false)} className="absolute top-8 right-8 text-gray-400 hover:text-black transition-colors">
                 <X size={24} />
@@ -214,8 +231,16 @@ function Mentor({
                 <div className="grid grid-cols-3 gap-3">
                   {slots.length > 0 ? slots.map((slot, i) => (
                     <button key={i} onClick={() => setSelectedSlot(slot)} className={`py-3 rounded-2xl border text-sm font-medium transition-all ${selectedSlot === slot ? 'bg-[#e94e36] border-[#e94e36] text-white' : 'bg-white border-black/5 text-gray-700 hover:border-black/20'}`}>
-                      {slot.formattedStartTime}
-                    </button>
+                     {new Date(slot.startTimeISO).toLocaleTimeString([], {
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                    -
+                    {new Date(slot.endTimeISO).toLocaleTimeString([], {
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </button>
                   )) : <div className="col-span-3 text-center py-6 text-gray-400 italic text-sm">No slots available.</div>}
                 </div>
               </div>
@@ -232,9 +257,29 @@ function Mentor({
             </div>
           </div>
         )}
-      </div>
+        {processingPayment && (
+          <div className="fixed inset-0 z-200 bg-[#fdfaf3] flex flex-col items-center justify-center">
+
+            <div className="w-16 h-16 border-4 border-black/10 border-t-black rounded-full animate-spin mb-8" />
+
+            <h2 className="font-serif text-3xl text-[#1a1a1a] mb-3">
+              Confirming your booking
+            </h2>
+
+            <p className="text-gray-500 text-sm">
+              Please wait while we verify your payment.
+            </p>
+
+          </div>
+        )}
+
+        </div>
+      
     </section>
+    
   );
 }
+
+
 
 export default Mentor;
